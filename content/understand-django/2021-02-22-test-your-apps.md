@@ -23,8 +23,13 @@ series: "Understand Django"
 ---
 
 In the previous
+{{< web >}}
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
+{{< /web >}}
+{{< book >}}
+chapter,
+{{< /book >}}
 we saw how static files
 like CSS, JavaScript, and images
 can be incorporated
@@ -69,7 +74,7 @@ How long does that take?
 For starting out,
 manually checking out your site is fine.
 What happens, though,
-when your create more pages?
+when you create more pages?
 How do you continue to confirm
 that all your pages are functional?
 You could open up the local site
@@ -213,7 +218,7 @@ there are some downsides:
     so running time is relative.
 
 When we have tests
-that runs many parts
+that run many parts
 of your application
 that are *integrated* together,
 we call these tests *integration tests*.
@@ -296,7 +301,12 @@ with testing your web app
 to verify its correctness.
 I brought all of this up because,
 if you're going to learn more about testing
+{{< web >}}
 after this article,
+{{< /web >}}
+{{< book >}}
+after this chapter,
+{{< /book >}}
 I caution you
 to avoid getting sucked
 into this definition trap.
@@ -304,10 +314,15 @@ into this definition trap.
 Here are my working definitions
 of unit and integration tests
 in Django.
-These definition are imperfect
+These definitions are imperfect
 (as are *any* definitions),
 but they should help frame the discussion
+{{< web >}}
 in this article.
+{{< /web >}}
+{{< book >}}
+in this chapter.
+{{< /book >}}
 
 * **Unit tests** - Tests that check individual units
     within a Django project like a model method
@@ -350,12 +365,12 @@ of those extensions.
 
 My biggest reason
 for using `pytest-django` is
-that it let's me use the `assert` keyword
+that it lets me use the `assert` keyword
 in all of my tests.
 In the Python standard library's `unittest` module
 and, by extension,
 Django's built-in test tools
-which subclasses `unitttest` classes,
+which subclass `unittest` classes,
 checking values requires methods
 like `assertEqual`
 and `assertTrue`.
@@ -365,7 +380,10 @@ to write tests.
 
 The other vital tool
 in my tool belt is `factory-boy`.
-factory_boy is a tool
+PyPI calls this `factory-boy`,
+but the documentation uses `factory_boy`,
+so we'll use that naming from here on.
+`factory_boy` is a tool
 for building test database data.
 The library has fantastic Django integration
 and gives us the ability
@@ -424,7 +442,9 @@ from application.tests.factories import OrderFactory
 class TestOrder:
     def test_shipped(self):
         """After shipping an order, the status is shipped."""
-        order = OrderFactory(status=Order.Status.PENDING)
+        order = OrderFactory(
+            status=Order.Status.PENDING
+        )
 
         order.ship()
 
@@ -460,7 +480,7 @@ Trust me, you *will* benefit from docstrings
 on your tests.
 There is a strong temptation to leave things
 at `test_shipped`,
-but future you may not have enough context.
+but in the future you may not have enough context.
 
 Many developers opt for long test names instead.
 While I have no problem with long descriptive test names,
@@ -499,11 +519,11 @@ for testing.
 Once you see the way
 that tests:
 
-1. Set up the inputs.
-2. Take action.
-3. Check the outputs.
+1. Set up the inputs,
+2. Take action,
+3. Check the outputs,
 
-Then automated testing becomes a lot less scary
+then automated testing becomes a lot less scary
 and more valuable to you.
 Now let's see how this same pattern plays out
 in forms.
@@ -527,14 +547,17 @@ class TestSupportForm:
         """A submission to the support form creates a support request."""
         email = "hello@notreal.com"
         data = {
-            "email": email, "message": "I'm having trouble with your product."
+            "email": email,
+            "message": "I'm having trouble with your product."
         }
         form = SupportForm(data=data)
         form.is_valid()
 
         form.save()
 
-        assert SupportRequest.objects.filter(email=email).count() == 1
+        assert SupportRequest.objects.filter(
+            email=email
+        ).count() == 1
 ```
 
 With this test,
@@ -579,7 +602,10 @@ class TestSupportForm:
 
     def test_bad_email(self):
         """An malformed email address is invalid."""
-        data = {"email": "bogus", "message": "Whatever"}
+        data = {
+            "email": "bogus",
+            "message": "Whatever"
+        }
         form = SupportForm(data=data)
 
         is_valid = form.is_valid()
@@ -623,7 +649,7 @@ for virtually all
 of my Django form tests.
 Let's move on
 to the integration tests
-to see what it look like
+to see what it looks like
 to test more code
 at once.
 
@@ -641,7 +667,12 @@ My definition of an integration test
 in Django
 is a test
 that uses Django's test `Client`.
+{{< web >}}
 In previous articles,
+{{< /web >}}
+{{< book >}}
+In previous chapters,
+{{< /book >}}
 I've only mentioned what a client is in passing.
 In the context
 of a web application,
@@ -649,7 +680,7 @@ a client is anything that consumes the output
 of a web app
 to display it to a user.
 
-The most obvious client for web app
+The most obvious client for a web app
 is a web browser,
 but there are plenty
 of other client types out there.
@@ -689,7 +720,9 @@ class TestProfileView:
         client = Client()
         user = UserFactory()
 
-        response = client.get(reverse("profile"))
+        response = client.get(
+            reverse("profile")
+        )
 
         assert response.status_code == 200
         assert user.first_name in response.content.decode()
@@ -757,7 +790,7 @@ but these two tools are a fantastic start.
 
 {{< extlink "https://docs.pytest.org/en/stable/" "pytest" >}} is a "test runner."
 The tool's job is to run automated tests.
-If you read {{< extlink "https://docs.djangoproject.com/en/3.1/topics/testing/overview/" "Writing and running tests" >}}
+If you read {{< extlink "https://docs.djangoproject.com/en/4.1/topics/testing/overview/" "Writing and running tests" >}}
 in the Django documentation,
 you'll discover
 that Django *also* includes a test runner
@@ -855,17 +888,31 @@ when writing automated tests.
 The other test package
 that I think every developer should use
 in their Django projects is
-{{< extlink "https://factoryboy.readthedocs.io/en/stable/" "factory_boy" >}}.
+`{{< extlink "https://factoryboy.readthedocs.io/en/stable/" "factory_boy" >}}`.
 
-> factory_boy helps you build model data for your tests.
+> `factory_boy` helps you build model data for your tests.
+
+The recommendation when writing automated tests
+is to use an empty test database.
+If fact,
+the common pattern provided with Django testing tools
+is to use an empty database
+for every test.
+Having a blank slate in the database helps
+each test be independent
+and makes it easier to assert
+on the state of the database.
+Because the test database is empty,
+you'll need a strategy to populate your tests
+with the appropriate data to check against.
 
 As you build up your Django project,
 you will have more models
 that help to describe the domain
 that your website addresses.
 Generating model data
-for your tests is a capability
-that is immensely valuable.
+for your tests is an
+immensely valuable capability.
 
 You *could* use your model manager's `create` method
 to create a database entry
@@ -892,14 +939,25 @@ as the number of foreign key relationships increases.
 ```python
 def test_detail_view_show_genre(client):
     """The genre is on the detail page."""
-    director = Director.objects.create(name="Steven Spielberg")
-    producer = Producer.objects.create(name="George Lucas")
-    studio = Studio.objects.create(name='Paramount')
+    director = Director.objects.create(
+        name="Steven Spielberg"
+    )
+    producer = Producer.objects.create(
+        name="George Lucas"
+    )
+    studio = Studio.objects.create(
+        name='Paramount'
+    )
     movie = Movie.objects.create(
-        genre='Sci-Fi', director=director, producer=producer, studio=studio
+        genre='Sci-Fi',
+        director=director,
+        producer=producer,
+        studio=studio
     )
 
-    response = client.get(reverse('movie:detail', args=[movie.id]))
+    response = client.get(
+        reverse('movie:detail', args=[movie.id])
+    )
 
     assert response.status_code == 200
     assert 'Sci-Fi' in response.content.decode()
@@ -908,7 +966,7 @@ def test_detail_view_show_genre(client):
 On the surface,
 the test isn't *too* bad.
 I think that's mostly because I kept the modeling simple.
-What if `Director`, `Producer`, or `Studio` also had required foreign keys?
+What if the `Director`, `Producer`, or `Studio` models also had required foreign keys?
 We'd spend most
 of our effort
 on the Arrangement section
@@ -920,14 +978,16 @@ Did we need to know the names
 of the director, producer, and studio?
 No, we didn't need that for this test.
 Now,
-let's look at the factory_boy equivalent.
+let's look at the `factory_boy` equivalent.
 
 ```python
 def test_detail_view_show_genre(client):
     """The genre is on the detail page."""
     movie = MovieFactory(genre='Sci-Fi')
 
-    response = client.get(reverse('movie:detail', args=[movie.id]))
+    response = client.get(
+        reverse('movie:detail', args=[movie.id])
+    )
 
     assert response.status_code == 200
     assert 'Sci-Fi' in response.content.decode()
@@ -966,15 +1026,21 @@ class MovieFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Movie
 
-    director = factory.SubFactory(DirectorFactory)
-    producer = factory.SubFactory(ProducerFactory)
-    studio = factory.SubFactory(StudioFactory)
+    director = factory.SubFactory(
+        DirectorFactory
+    )
+    producer = factory.SubFactory(
+        ProducerFactory
+    )
+    studio = factory.SubFactory(
+        StudioFactory
+    )
     genre = 'Action'
 ```
 
 This factory definition is very declarative.
 We declare what we want,
-and factory_boy figures out how to put it together.
+and `factory_boy` figures out how to put it together.
 This quality leads to factories
 that you can reason about
 because you can focus
@@ -984,7 +1050,7 @@ of model construction.
 
 The other noteworthy aspect is that the factories compose together.
 When we call `MovieFactory()`,
-factory_boy is missing data
+`factory_boy` is missing data
 about everything
 so it must build all of that data.
 The challenge is that the `MovieFactory` doesn't know
@@ -995,7 +1061,7 @@ the factory will delegate
 to *other* factories
 using the `SubFactory` attribute.
 By delegating to other factories,
-factory_boy can build the model
+`factory_boy` can build the model
 and its entire tree
 of relationships
 with a single call.
@@ -1009,29 +1075,39 @@ as the `genre`.
 You can pass in other model instances
 to your factories too.
 
-factory_boy makes testing
+`factory_boy` makes testing
 with database records a joy.
 In my experience,
 most of my Django tests require some amount
 of database data
 so I use factories very heavily.
 I think you will find
-that factory_boy is a worthy addition
+that `factory_boy` is a worthy addition
 to your test tools.
 
 ## Summary
 
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we explored tests
 with Django projects.
 We focused on:
 
-* Why would anyone want to write automated tests
+* Why anyone would want to write automated tests
 * What kinds of tests are useful
     to a Django app
-* What tools can you use to make testing easier
+* What tools you can use to make testing easier
 
+{{< web >}}
 Next time,
+{{< /web >}}
+{{< book >}}
+In the next chapter,
+{{< /book >}}
 we will dig into deployment.
 Deployment is getting your project
 into the environment
@@ -1051,6 +1127,7 @@ you'll want to know about:
     with the proper security guards
 * Monitoring your application for errors
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -1061,3 +1138,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}

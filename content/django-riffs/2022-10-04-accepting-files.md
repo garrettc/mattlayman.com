@@ -1,16 +1,21 @@
 ---
-title: "User File Use"
+title: "Episode 17 - Accepting Files"
+aliases:
+ - /django-riffs/17
+ - /djangoriffs/17
+ - /django-riffs/17.
+ - /djangoriffs/17.
 description: >-
     Maybe your app needs to handle files
     from users
     like profile pictures.
     Accepting files from others is tricky
     to do safely.
-    In this article,
+    On this episode,
     we'll see the tools
     that Django provides
     to manage files safely.
-image: img/django.png
+image: img/django-riffs-banner.png
 type: post
 categories:
  - Python
@@ -19,32 +24,11 @@ tags:
  - Python
  - Django
  - files
-series: "Understand Django"
+nofluidvids: true
 
 ---
 
-In the last
-{{< web >}}
-[Understand Django]({{< ref "/understand-django/_index.md" >}})
-article,
-{{< /web >}}
-{{< book >}}
-chapter,
-{{< /book >}}
-you learned about Django settings
-and how to manage the configuration
-of your application.
-We also looked at tools
-to help you
-define settings
-effectively.
-
-{{< web >}}
-With this article,
-{{< /web >}}
-{{< book >}}
-With this chapter,
-{{< /book >}}
+On this episode,
 we're going to dig into file management.
 Unlike the static files
 that you create for the app yourself,
@@ -56,24 +40,24 @@ You'll see how Django handles those kinds
 of files
 and how to deal with them safely.
 
-{{< understand-django-series "files" >}}
+Listen at {{< extlink "https://djangoriffs.com/episodes/accepting-files" "djangoriffs.com" >}}
+or with the player below.
+
+<div class="h-48">
+<iframe height="200px" width="100%" frameborder="no" scrolling="no" seamless src="https://player.simplecast.com/7c13d5d7-312b-4179-8415-f9a0ce465bfc?dark=false"></iframe>
+</div>
+
+## Last Episode
+
+On the last episode,
+we looked at how to manage settings
+on your Django site.
+What are the common techniques
+to make this easier to handle?
+That's what we explored.
 
 ## Files In Django Models
 
-{{< web >}}
-As we saw in the models article,
-{{< /web >}}
-{{< book >}}
-As we saw in the models chapter,
-{{< /book >}}
-model fields in a Django model map
-to a column in a database table.
-When you want to access the *data*
-for a model instance,
-Django will pull the data
-from a database row.
-
-Dealing with files in models is a bit different.
 While it *is* possible to store file data directly
 in a database,
 you won't see that happen often.
@@ -92,9 +76,9 @@ a column would store some kind of *reference*
 to the stored file
 like a path
 if files are stored on a filesystem.
-This is the approach
+**This is the approach
 that Django takes
-with files.
+with files.**
 
 Now that you know that Django takes this approach,
 you can remember:
@@ -107,10 +91,6 @@ and we'll discuss storage
 in more depth
 in the next section.
 
-Let's focus on the first item.
-What do you use to reference the files?
-Like all other model data,
-we'll use a field!
 Django includes two fields
 that help with file management:
 
@@ -118,9 +98,6 @@ that help with file management:
 * `ImageField`
 
 ### `FileField`
-
-What if you want to store a profile picture?
-You might do something like this:
 
 ```python
 # application/models.py
@@ -143,15 +120,8 @@ $ ./manage.py shell
 >>> from application.models import Profile
 >>> f = open('/Users/matt/path/to/image.png')
 >>> profile = Profile()
->>> profile.picture.save(
-...     'my-image.png',
-...     File(f)
-... )
+>>> profile.picture.save('my-image.png', File(f))
 ```
-
-In this example,
-I'm creating a profile instance manually.
-There are a few interesting notes:
 
 * The `File` class is an important wrapper
     that Django uses
@@ -165,12 +135,6 @@ There are a few interesting notes:
 * Saving the picture will automatically save the parent model instance
     by default.
 
-More often than not,
-you won't need to use these interfaces directly
-because Django has form fields
-and other tools
-that manage much of this for you.
-
 The current model example raises questions.
 
 * Where does that data go?
@@ -180,22 +144,12 @@ The current model example raises questions.
 If we make no changes to the current setup,
 the data will go into the root
 of the media file storage.
-Media file storage is a topic that will be covered later.
-For the moment,
-recognize that putting all the files into a single place (i.e., the root)
-will be a mess.
-This mess will be pronounced if you're trying to track many file fields,
+This will lead to a mess if you're trying to track many file fields,
 but we can fix this with the `upload_to` field keyword argument.
 The simplest version of `upload_to` can take a string
-that the storage logic will use as a directory prefix
+that storage will use as a directory prefix
 to scope content
 into a different area.
-
-We're still left with potentially conflicting filenames.
-Thankfully,
-`upload_to` can also accept a callable
-that gives us a chance to fix that issue.
-Let's rework the example.
 
 ```python
 # application/models.py
@@ -204,61 +158,14 @@ import uuid
 from pathlib import Path
 from django.db import models
 
-def profile_pic_path(
-        instance,
-        filename
-    ):
+def profile_pic_path(instance, filename):
     path = Path(filename)
-    return "profile_pics/{}{}".format(
-        uuid.uuid4(),
-        path.suffix
-    )
+    return "profile_pics/{}{}".format(uuid.uuid4(), path.suffix)
 
 class Profile(models.Model):
-    picture = models.FileField(
-        upload_to=profile_pic_path
-    )
+    picture = models.FileField(upload_to=profile_pic_path)
     # Other fields like a OneToOneKey to User ...
 ```
-
-With this new version
-of the profile model,
-all of the images will be stored
-in a `profile_pics` path
-within the file storage.
-
-This version also solves the duplicate filename problem.
-`profile_pic_path` ignores most
-of the original filename provided.
-If two users both happen to upload `profile-pic.jpg`,
-`profile_pic_path` will assign those images random IDs
-and ignore the `profile-pic` part
-of the filename.
-
-You can see that the function calls `uuid4()`.
-These are effectively random IDs called
-{{< extlink "https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)" "Universally Unique Identifiers (UUID)" >}}.
-UUIDs are likely something that you've seen before
-if you've worked with computers long enough,
-even if you didn't know their name.
-An example UUID would be `76ee4ae4-8659-4b50-a04f-e222df9a656a`.
-In the storage area,
-you might find a file stored as:
-
-```text
-profile_pics/76ee4ae4-8659-4b50-a04f-e222df9a656a.jpg
-```
-
-Each call to `uuid4()` is nearly certain
-to generate a unique value.
-Because of this feature,
-we can avoid filename conflicts
-by storing profile pictures
-with a unique name.
-As an aside,
-UUIDs are not very friendly for users,
-so if you plan to let your users download these files,
-you might wish to explore alternative naming techniques.
 
 There's one more problem to fix
 in this example.
@@ -276,9 +183,7 @@ To use `ImageField`,
 you'll need to install the
 {{< extlink "https://pillow.readthedocs.io/en/latest/" "Pillow" >}} library.
 Pillow is a package
-that lets Python work with image data.
-
-Our final example looks like:
+that let's Python work with image data.
 
 ```python
 # application/models.py
@@ -287,44 +192,16 @@ import uuid
 from pathlib import Path
 from django.db import models
 
-def profile_pic_path(
-        instance,
-        filename
-    ):
+def profile_pic_path(instance, filename):
     path = Path(filename)
-    return "profile_pics/{}{}".format(
-        uuid.uuid4(),
-        path.suffix
-    )
+    return "profile_pics/{}{}".format(uuid.uuid4(), path.suffix)
 
 class Profile(models.Model):
-    picture = models.ImageField(
-        upload_to=profile_pic_path
-    )
+    picture = models.ImageField(upload_to=profile_pic_path)
     # Other fields like a OneToOneKey to User ...
 ```
 
-Now that we've seen how Django will track files and images
-in your models,
-let's go deeper
-and try to understand the file storage features.
-
 ## Files Under The Hood
-
-We now know that models store references to files
-and not the files themselves.
-The file storage task is delegated
-to a special Python class
-in the system.
-
-This Python class must implement
-{{< extlink "https://docs.djangoproject.com/en/4.1/ref/files/storage/" "a specific API" >}}.
-Why?
-Like so many other parts of Django,
-the storage class can be swapped out
-for a different class.
-We've seen this swappable pattern already
-with templates, databases, authentication, static files, and sessions.
 
 The setting to control which type
 of file storage Django uses is `DEFAULT_FILE_STORAGE`.
@@ -348,21 +225,8 @@ where Django should look for files in the filesystem.
 MEDIA_ROOT = BASE_DIR / "media"
 ```
 
-On my computer,
-with the above setting
-and the `Profile` class example
-from earlier,
-Django would store a file somewhere like:
-
-```text
-# This path is split to be easier to read.
-/Users/matt/example-app/ \
-    media/profile_pics/ \
-    76ee4ae4-8659-4b50-a04f-e222df9a656a.jpg
-```
-
 The other setting important to `FileSystemStorage` is `MEDIA_URL`.
-This setting will determine how files are accessed
+This settings will determine how files are accessed
 by browsers
 when Django is running.
 Let's say `MEDIA_URL` is:
@@ -382,18 +246,11 @@ Our profile picture would have a URL like:
 
 This is the path that we can reference
 in templates.
-An image tag template fragment would look like:
+An image tag template fragment would like:
 
-{{< web >}}
 ```django
 <img src="{{ profile.picture.url }}">
 ```
-{{< /web >}}
-{{< book >}}
-```djangotemplate
-<img src="{{ profile.picture.url }}">
-```
-{{< /book >}}
 
 The Django documentation shows how file storage is a specific interface.
 `FileSystemStorage` happens to be included
@@ -401,13 +258,6 @@ with Django and implements this interface
 for the simplest storage mechanism,
 the file system
 of your server's operating system.
-
-We can also store files separately
-from the web server,
-and there are often really good reasons to do that.
-Up next,
-we'll look at another option
-for file storage aside from the provided default.
 
 ## Recommended Package
 
@@ -427,11 +277,6 @@ Here are a few:
     that can cause a Denial of Service (DOS) attack
     and make your site inaccessible.
 
-If you conclude that `FileSystemStorage` will not work
-for your app,
-is there another good option?
-Absolutely!
-
 The most popular storage package
 to reach for is
 {{< extlink "https://django-storages.readthedocs.io/en/latest/" "django-storages" >}}.
@@ -446,14 +291,7 @@ your application can connect to services like:
 * Amazon Simple Storage Service (S3)
 * Google Cloud Storage
 * Digital Ocean Spaces
-* Services you run separately like an SFTP server
-
-These services would have additional cost
-beyond the cost of running your web server
-in the cloud,
-but the services usually have shockingly low rates
-and some offer a generous free tier
-for lower levels of data storage.
+* Or services you run separately like an SFTP server
 
 Why use django-storages?
 
@@ -465,7 +303,7 @@ Why use django-storages?
     like a malicious file trying to execute arbitrary code
     on the web server.
 * Cloud storage can offer some caching benefits
-    and be easily connected to Content Delivery Networks
+    and be connected to Content Delivery Networks easily
     to optimize how files are served to your app's users.
 
 As with all software choices,
@@ -488,11 +326,6 @@ regions,
 buckets,
 and a handful of other important settings.
 
-While the setup cost exists,
-you'll usually pay that cost at the beginning
-of a project
-and be mostly hands off after that.
-
 django-storages is a pretty fantastic package,
 so if your project has a lot of files to manage,
 you should definitely consider using it
@@ -500,12 +333,7 @@ as an alternative to the `FileSystemStorage`.
 
 ## Summary
 
-{{< web >}}
-In this article,
-{{< /web >}}
-{{< book >}}
-In this chapter,
-{{< /book >}}
+In this episode,
 you learned about Django file management.
 We covered:
 
@@ -513,30 +341,30 @@ We covered:
 * How the files are managed in Django
 * A Python package that can store files in various cloud services
 
-{{< web >}}
-In the next article,
-{{< /web >}}
-{{< book >}}
-In the next chapter,
-{{< /book >}}
+## Next Time
+
+In the next episode,
 let's explore commands.
 Commands are the code
 that you can run with `./manage.py`.
-You'll learn about:
 
-* Built-in commands provided by Django
-* How to build custom commands
-* Extra commands from the community that are useful extensions for apps
-
-{{< web >}}
-If you'd like to follow along
-with the series,
-please feel free to sign up
-for my newsletter
-where I announce all of my new content.
-If you have other questions,
-you can reach me online
+You can follow the show
+on {{< extlink "https://djangoriffs.com" "djangoriffs.com" >}}.
+Or follow me or the show
 on Twitter
-where I am
-{{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
-{{< /web >}}
+at
+{{< extlink "https://twitter.com/mblayman" "@mblayman" >}}
+or
+{{< extlink "https://twitter.com/djangoriffs" "@djangoriffs" >}}.
+
+Please rate or review
+on Apple Podcasts, Spotify,
+or from wherever you listen to podcasts.
+Your rating will help others discover the podcast,
+and I would be very grateful.
+
+Django Riffs is supported by listeners like *you*.
+If you can contribute financially
+to cover hosting and production costs,
+please check out my {{< extlink "https://www.patreon.com/mblayman" "Patreon page" >}}
+to see how you can help out.

@@ -22,16 +22,23 @@ series: "Understand Django"
 
 ---
 
+{{< web >}}
 In the previous
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
 we used models
 to see how Django stores data
 in a relational database.
+{{< /web >}}
 We covered all the tools
 to bring your data to life
 in your application.
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we will focus
 on the built-in tools
 that Django provides
@@ -75,6 +82,25 @@ The site is so commonly used
 that it is pre-configured
 when you run the `startproject` command.
 
+Before proceeding,
+I'd first like to make note of a security issue.
+When using `startproject`,
+Django will put the admin site
+at `/admin/`
+by default.
+**Change this**.
+The starter template conveniently sets up the admin site
+for you,
+but this default URL makes it easy
+for {{< extlink "https://en.wikipedia.org/wiki/Script_kiddie" "script kiddies" >}}
+to try to attack your admin site
+to gain access.
+Putting your admin site on a different URL *won't* fully protect your site
+(because you should never rely
+on "security through obscurity"),
+but it will help avoid a large amount
+of automated attacks.
+
 The Django admin gives you a quick ability
 to interact
 with your models.
@@ -107,6 +133,12 @@ There are a few main pages
 that you can navigate
 when working in a Django admin site
 that direct where the CRUD operations happen.
+These pages are available to you
+with very little effort
+on your part
+aside from the registration process
+that you'll see
+in the next section.
 
 1. Admin index page -
     This page will show all the models,
@@ -140,25 +172,6 @@ The power to create and destroy is in your hands. 😈
 Now that we understand what is in the admin site,
 let's focus on how to add your models to the admin.
 
-Before doing that,
-I'd like to note a security issue before moving on.
-When using `startproject`,
-Django will put the admin site
-at `/admin/`
-by default.
-**Change this**.
-The starter template conveniently sets up the admin site
-for you,
-but this default URL makes it easy
-for {{< extlink "https://en.wikipedia.org/wiki/Script_kiddie" "script kiddies" >}}
-to try to attack your admin site
-to gain access.
-Putting your admin site on a different URL *won't* fully protect your site
-(because you should never rely
-on "security through obscurity"),
-but it will help avoid a large amount
-of automated attacks.
-
 ## Register A Model With The Admin
 
 To make the admin site show your model data,
@@ -185,8 +198,12 @@ of a book.
 from django.db import models
 
 class Book(models.Model):
-    title = models.CharField(max_length=256)
-    author = models.CharField(max_length=256)
+    title = models.CharField(
+        max_length=256
+    )
+    author = models.CharField(
+        max_length=256
+    )
 ```
 
 Now we can create a `ModelAdmin` class
@@ -212,6 +229,23 @@ with this `admin.py` file.
 2. The `BookAdmin` is registered
     with the admin site
     by using the `admin.register` decorator.
+
+You can also register an admin class
+by calling `register`
+after the class
+if you don't want to use a decorator.
+
+```python
+# application/admin.py
+from django.contrib import admin
+
+from .models import Book
+
+class BookAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Book, BookAdmin)
+```
 
 Now that we have a model registered
 with the admin site,
@@ -308,7 +342,7 @@ As such,
 mastering the Django admin site
 is all about mastering the `ModelAdmin` options
 that are listed
-{{< extlink "https://docs.djangoproject.com/en/3.0/ref/contrib/admin/#modeladmin-options" "in the documentation" >}}.
+{{< extlink "https://docs.djangoproject.com/en/4.1/ref/contrib/admin/#modeladmin-options" "in the documentation" >}}.
 That list is long,
 but don't be discouraged!
 I think that you can get about 80%
@@ -365,16 +399,20 @@ Suppose that the `Book` model has a category field.
 # application/models.py
 
 class Book(models.Model):
-    class Category(models.IntegerChoices):
+    class Category(
+        models.IntegerChoices
+    ):
         SCI_FI = 1
         FANTASY = 2
         MYSTERY = 3
         NON_FICTION = 4
 
-    title = models.CharField(max_length=256)
-    author = models.CharField(max_length=256)
+    # ... title and author from before
+
     category = models.IntegerField(
-        choices=Category.choices, default=Category.SCI_FI)
+        choices=Category.choices,
+        default=Category.SCI_FI
+    )
 ```
 
 By using the `list_filter` attribute,
@@ -415,20 +453,14 @@ let's give the model a `published_date`.
 # application/models.py
 
 class Book(models.Model):
-    class Category(models.IntegerChoices):
-        SCI_FI = 1
-        FANTASY = 2
-        MYSTERY = 3
-        NON_FICTION = 4
+    # ... title, author, category
 
-    title = models.CharField(max_length=256)
-    author = models.CharField(max_length=256)
-    category = models.IntegerField(
-        choices=Category.choices, default=Category.SCI_FI)
-    published_date = models.DateField(default=datetime.date.today)
+    published_date = models.DateField(
+        default=datetime.date.today
+    )
 ```
 
-We can can also change the `ModelAdmin`
+We can also change the `ModelAdmin`
 to use the new field.
 
 ```python
@@ -447,12 +479,26 @@ Across the top of the page will be selectors
 to help filter down to the right time range.
 This is a very useful way to look through your database table.
 
-We can still go farther.
+We can still go further.
 Perhaps we want all of the books to be sorted
 by their titles.
 Even if the `ordering` attribute is not set
 on the model's meta options,
 the `ModelAdmin` has its own `ordering` attribute.
+
+*What's "meta?"*
+Aside from fields,
+a Django model can set extra infromation
+about how to handle data.
+These extra options are the "meta" attributes
+of the model.
+A Django model adds meta info
+by including a nested `Meta` class
+on the model.
+Check out the
+{{< extlink "https://docs.djangoproject.com/en/4.1/ref/models/options/" "Model Meta options" >}}
+to see what other features are available
+to customize model behavior.
 
 ```python
 # application/admin.py
@@ -505,7 +551,9 @@ on the field.
 The `QuerySet` would be something like:
 
 ```python
-search_results = Book.objects.filter(author__icontains="tolkien")
+search_results = Book.objects.filter(
+    author__icontains="tolkien"
+)
 ```
 
 The results wouldn't compete well
@@ -529,19 +577,15 @@ to track an editor.
 from django.contrib.auth.models import User
 
 class Book(models.Model):
-    class Category(models.IntegerChoices):
-        SCI_FI = 1
-        FANTASY = 2
-        MYSTERY = 3
-        NON_FICTION = 4
+    # ... title, author, category
+    # published_date from before
 
-    title = models.CharField(max_length=256)
-    author = models.CharField(max_length=256)
-    category = models.IntegerField(
-        choices=Category.choices, default=Category.SCI_FI)
-    published_date = models.DateField(default=datetime.date.today)
     editor = models.ForeignKey(
-        User,null=True, blank=True, on_delete=models.CASCADE)
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
 ```
 
 On the admin page
@@ -613,20 +657,10 @@ to the `Book` model.
 # application/models.py
 
 class Book(models.Model):
-    class Category(models.IntegerChoices):
-        SCI_FI = 1
-        FANTASY = 2
-        MYSTERY = 3
-        NON_FICTION = 4
+    # ... title, author, category
+    # published_date, editor from before
 
-    title = models.CharField(max_length=256)
     slug = models.SlugField()
-    author = models.CharField(max_length=256)
-    category = models.IntegerField(
-        choices=Category.choices, default=Category.SCI_FI)
-    published_date = models.DateField(default=datetime.date.today)
-    editor = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.CASCADE)
 ```
 
 What is the benefit
@@ -683,6 +717,28 @@ In that method,
 we would return a tuple
 based on the user's access level.
 
+```python
+# application/admin.py
+from django.contrib import admin
+
+from .models import Book
+
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    ...
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return (
+                'id',
+                'title',
+                'author',
+                'category',
+            )
+
+        return ('id', 'title')
+```
+
 One final attribute to consider
 is called `inlines`.
 I don't reach for this option often,
@@ -698,7 +754,10 @@ We could add a model like:
 # application/models.py
 
 class Review(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE
+    )
     rating = models.IntegerField()
     comment = models.TextField()
 ```
@@ -768,7 +827,7 @@ of records.
 
 In the default admin site,
 there is an action
-that let's administrators delete records.
+that lets administrators delete records.
 If you select some rows
 with the checkboxes
 on the left hand side,
@@ -861,7 +920,11 @@ class BookAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     search_fields = ("author",)
 
-    def set_premiere(self, request, queryset):
+    def set_premiere(
+        self,
+        request,
+        queryset
+    ):
         if len(queryset) == 1:
             book = queryset[0]
             update_premiere(book)
@@ -889,7 +952,12 @@ in their applications.
 
 ## Summary
 
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we looked
 at the built-in Django administrator's site.
 This powerful extension gives us the ability
@@ -909,7 +977,12 @@ We've covered:
     that enable you to do work
     on your model records
 
+{{< web >}}
 Next time we will cover
+{{< /web >}}
+{{< book >}}
+In the next chapter we will cover
+{{< /book >}}
 the anatomy
 of a Django application.
 A Django project is composed
@@ -920,6 +993,7 @@ We will explore:
 * How Django identifies and loads applications
 * Why applications are crucial for the Django ecosystem
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -930,3 +1004,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}

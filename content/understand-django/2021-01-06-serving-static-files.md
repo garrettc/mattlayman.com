@@ -21,8 +21,13 @@ series: "Understand Django"
 ---
 
 In the previous
+{{< web >}}
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
+{{< /web >}}
+{{< book >}}
+chapter,
+{{< /book >}}
 I described how Django gives us tools
 to run code
 for any request
@@ -44,7 +49,8 @@ when your application is running.
 
 These files do a lot to improve your application,
 but they aren't dynamically generated
-by your Python web server.
+by your Python web server
+like a usual HTML response.
 In a typical web application,
 your most common static files will be the following types:
 
@@ -57,8 +63,8 @@ there may be a complex process
 in place
 to produce the files.
 For instance,
-modern JavaScript apps often have complex processes
-using JavaScript build tools
+modern JavaScript apps often
+use complex build tools
 like {{< extlink "https://webpack.js.org/" "webpack" >}}
 to build the final JavaScript files
 that are served
@@ -96,7 +102,7 @@ that Django will include
 if you start from the `startproject` command.
 
 The `staticfiles` app has a handful
-of {{< extlink "https://docs.djangoproject.com/en/3.1/ref/settings/#settings-staticfiles" "settings" >}}
+of {{< extlink "https://docs.djangoproject.com/en/4.1/ref/settings/#settings-staticfiles" "settings" >}}
 that we need to consider to start.
 
 I'm going to make the same recommendation
@@ -125,14 +131,14 @@ within each app.
 
 ...
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 ```
 
 Next,
 we can define the URL path prefix
 that Django will use
 when it serves a static file.
-Let's says you have `site.css`
+Let's say you have `site.css`
 in the root
 of your project's `static` directory.
 You probably wouldn't want the file
@@ -151,7 +157,7 @@ and, as the {{< extlink "https://www.python.org/dev/peps/pep-0020/" "Zen of Pyth
 
 ...
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_URL = '/static/'
 ```
 
@@ -181,7 +187,12 @@ so that searching for a file is a search
 through a single file tree.
 We'll look more at how this happens
 in the deployment section later
+{{< web >}}
 in this article.
+{{< /web >}}
+{{< book >}}
+in this chapter.
+{{< /book >}}
 
 Once we set `STATIC_ROOT`,
 Django will have the desired output location
@@ -193,6 +204,9 @@ in your `.gitignore`
 if you're using version control
 with {{< extlink "https://git-scm.com/" "Git" >}}
 (and I highly recommend that you do!).
+Without that addition to `.gitignore`,
+you'll needlessly add the generated files
+to version control.
 I happen to set my `STATIC_ROOT`
 to a `staticfiles` directory.
 
@@ -201,8 +215,8 @@ to a `staticfiles` directory.
 
 ...
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_URL = '/static/'
 ```
 
@@ -220,6 +234,7 @@ for a static file for your site.
 
 Here's an example template to consider:
 
+{{< web >}}
 ```django
 {% load static %}
 <!DOCTYPE html>
@@ -232,6 +247,21 @@ Here's an example template to consider:
 </body>
 </html>
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="{% static "css/site.css" %}">
+</head>
+<body>
+  <h1>Example of static template tag!</h1>
+</body>
+</html>
+```
+{{< /book >}}
 
 In this example,
 I'm assuming that there is a `css` directory
@@ -280,7 +310,7 @@ to use the `static` tag
 in the same way
 that we use the `url` tag
 when we want to resolve a Django URL path.
-Both of these tags help avoid harcoding paths
+Both of these tags help avoid hardcoding paths
 that can change.
 
 Less commonly,
@@ -306,10 +336,14 @@ you might write:
 # application/views.py
 
 from django.http import JsonResponse
-from django.templatetags.static import static
+from django.templatetags.static import (
+    static
+)
 
 def get_css(request):
-    return JsonResponse({'css': static('css/site.css')})
+    return JsonResponse(
+        {'css': static('css/site.css')}
+    )
 ```
 
 In my years of experience
@@ -327,7 +361,12 @@ for wider use
 on the internet.
 On its own,
 deployment is a large topic
+{{< web >}}
 that we'll cover in a future article,
+{{< /web >}}
+{{< book >}}
+that we'll cover in a future chapter,
+{{< /book >}}
 but we'll focus
 on static files deployment issues next.
 
@@ -444,6 +483,10 @@ because it's not a critical setting
 to make static files work,
 but we're ready for the setting
 as we're thinking about optimization.
+We should really consider this setting for our projects
+because Django is fairly slow at serving static files
+compared to some of the alternative options that are available
+in the ecosystem.
 
 The last setting we'll consider is the `STATICFILES_STORAGE` setting.
 This setting controls how static files are stored and accessed
@@ -521,7 +564,7 @@ we've got the best of both worlds.
     their browser will keep it
     for a long time
     and never need to download it again.
-    This can reused every time the user visits a page
+    This can be reused every time the user visits a page
     in your app.
 * If we ever change `site.css`,
     then the deployment process can generate a new file
@@ -577,8 +620,10 @@ like `site.abcd1234.css`,
 and it will generate compressed versions
 of those files
 using the gzip compression algorithm
-(and, optionally, the brotli compression algorithm).
-Thoese extra files look
+(and, optionally, the
+{{< extlink "https://en.wikipedia.org/wiki/Brotli" "brotli" >}}
+compression algorithm).
+Those extra files look
 like `site.abcd1234.css.gz`
 or `site.abcd1234.css.br`.
 
@@ -693,7 +738,12 @@ one such reverse proxy
 that you can consider is
 {{< extlink "https://www.nginx.com/" "Nginx" >}}.
 The configuration of Nginx is beyond the scope
+{{< web >}}
 of this series,
+{{< /web >}}
+{{< book >}}
+of this book,
+{{< /book >}}
 but there are plenty
 of solid tutorials
 that will show how to configure a Django app
@@ -701,7 +751,12 @@ with Nginx.
 
 ## Summary
 
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we covered static files.
 
 We looked at:
@@ -712,7 +767,12 @@ We looked at:
     when deploying your site
     to the internet
 
+{{< web >}}
 Looking ahead to the next article,
+{{< /web >}}
+{{< book >}}
+In the next chapter,
+{{< /book >}}
 we will learn about automated testing
 for your Django applications.
 Testing is one of my favorite topics
@@ -725,6 +785,7 @@ We'll cover:
     to a Django app
 * What tools can you use to make testing easier
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -735,3 +796,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}

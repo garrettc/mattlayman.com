@@ -21,6 +21,7 @@ tags:
 
 ---
 
+{{< web >}}
 In the previous
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
@@ -32,6 +33,11 @@ who use your site.
 In this article,
 you'll see how to take
 that data
+{{< /web >}}
+{{< book >}}
+In this chapter,
+you'll see how to take data
+{{< /book >}}
 and store it
 into a database
 so that your application can use that data
@@ -160,7 +166,12 @@ that can host your Django app will work well
 with Postgres.
 
 We can explore more database configuration
+{{< web >}}
 in a future article
+{{< /web >}}
+{{< book >}}
+in a future chapter
+{{< /book >}}
 on deployment.
 For now,
 while you're learning,
@@ -180,7 +191,12 @@ called **models**.
 Django models are similar
 to the form classes
 that we saw
+{{< web >}}
 in the last article.
+{{< /web >}}
+{{< book >}}
+in the last chapter.
+{{< /book >}}
 A Django model declares the data
 that you want to store
 in the database
@@ -202,9 +218,15 @@ Let's look at an example.
 from django.db import models
 
 class Employee(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    job_title = models.CharField(max_length=200)
+    first_name = models.CharField(
+        max_length=100
+    )
+    last_name = models.CharField(
+        max_length=100
+    )
+    job_title = models.CharField(
+        max_length=200
+    )
 ```
 
 This model class describes the pieces
@@ -241,7 +263,7 @@ to the database.
 We can do that with `employee.save()`,
 but,
 if you are following along
-and tried to call that right now,
+and try to call that right now,
 it will fail
 with an error that says
 that the employee table doesn't exist.
@@ -274,7 +296,7 @@ that you have in your project.
 
 Because Django works
 with many databases,
-these database operation are defined
+these database operations are defined
 in Python files
 so that the operations can be abstract.
 By using abstract operations,
@@ -381,12 +403,25 @@ by built-in Django applications.
 In my sample project,
 I used `startproject`
 which includes a set
-of included applications
+of common applications
 in the `INSTALLED_APPS` list.
 We can observe that our sample `application` applied its migration,
 and the migrations
 from the other Django applications
 that we included are also applied.
+
+If you run the `migrate` command again,
+you won't see the same output.
+That's because Django keeps tracks
+of which migrations were applied.
+The migration system will only execute any *unapplied* migrations.
+
+You can also limit which migrations to execute
+by providing a Django app name.
+
+```bash
+(venv) $ ./manage.py migrate application
+```
 
 Those are the fundamentals
 of migrations.
@@ -397,7 +432,7 @@ that are specific
 to your selected database.
 You can learn more
 about what Django migrations can do
-in the {{< extlink "https://docs.djangoproject.com/en/3.0/topics/migrations/" "Migrations documentation" >}}.
+in the {{< extlink "https://docs.djangoproject.com/en/4.1/topics/migrations/" "Migrations documentation" >}}.
 
 ## Working With Models
 
@@ -429,15 +464,17 @@ with the actual database.
 SQL is the common standard
 that Django's supported databases all "speak."
 Since Django uses SQL,
-that's why messages are named "query."
+that's why a message is named "query."
 
 What does an SQL query look like?
 If we save our model example from earlier,
 it would look something like:
 
 ```sql
-INSERT INTO "application_employee" ("first_name", "last_name", "job_title")
-    VALUES ('Tom', 'Bombadil', 'Old Forest keeper')
+INSERT INTO "application_employee"
+    ("first_name", "last_name", "job_title")
+VALUES
+    ('Tom', 'Bombadil', 'Old Forest keeper')
 ```
 
 Note that this example is an `INSERT` query
@@ -461,7 +498,12 @@ The database engine translates your `save` call
 into the proper SQL query.
 SQL is a deep topic
 that we can't possibly cover fully
+{{< web >}}
 in this article.
+{{< /web >}}
+{{< book >}}
+in this chapter.
+{{< /book >}}
 Thankfully,
 we don't have to
 because of Django's ORM!
@@ -487,7 +529,7 @@ We can do things like:
 * Update a set of rows at the same time.
 * Delete rows from the database.
 
-Most of the these operations
+Most of these operations
 with the Django ORM work
 through a `Manager` class.
 Where our previous example showed how
@@ -511,12 +553,13 @@ Bob Barker
 Bob Marley
 Bob Dylan
 >>> print(bobs.query)
-SELECT "application_employee"."id",
+SELECT
+    "application_employee"."id",
     "application_employee"."first_name",
     "application_employee"."last_name",
     "application_employee"."job_title"
-    FROM "application_employee"
-    WHERE "application_employee"."first_name" = Bob
+FROM "application_employee"
+WHERE "application_employee"."first_name" = Bob
 ```
 
 In this example,
@@ -541,7 +584,9 @@ What if you want to delete an employee record?
 ```python
 >>> from application.models import Employee
 >>> # The price is wrong, Bob!
->>> Employee.objects.filter(first_name='Bob', last_name='Barker').delete()
+>>> Employee.objects.filter(
+... first_name='Bob',
+... last_name='Barker').delete()
 (1, {'application.Employee': 1})
 ```
 
@@ -565,13 +610,17 @@ for your query.
 ```python
 from application.models import Employee
 
-employees = Employee.objects.all()  # employees is a QuerySet of all rows!
+# employees is a QuerySet of all rows!
+employees = Employee.objects.all()
 
 if should_find_the_bobs:
-    employees = employees.filter(first_name='Bob')  # New queryset!
+    # New queryset!
+    employees = employees.filter(
+        first_name='Bob'
+    )
 ```
 
-Here's are some other `QuerySet` methods
+Here are some other `QuerySet` methods
 that I use constantly:
 
 * `create` - As an alternative to creating a record instance
@@ -579,7 +628,10 @@ that I use constantly:
     the manager can create a record directly.
 
 ```python
-Employee.objects.create(first_name='Bobby', last_name='Tables')
+Employee.objects.create(
+    first_name='Bobby',
+    last_name='Tables'
+)
 ```
 
 * `get` - Use this method when you want one
@@ -589,12 +641,19 @@ Employee.objects.create(first_name='Bobby', last_name='Tables')
     you'll get an exception.
 
 ```python
-the_bob = Employee.objects.get(first_name='Bob', last_name='Marley')
+the_bob = Employee.objects.get(
+    first_name='Bob',
+    last_name='Marley'
+)
 
 Employee.objects.get(first_name='Bob')
-# Raises application.models.Employee.MultipleObjectsReturned
+# Raises
+# application.models.Employee.MultipleObjectsReturned
 
-Employee.objects.get(first_name='Bob', last_name='Sagat')
+Employee.objects.get(
+    first_name='Bob',
+    last_name='Sagat'
+)
 # Raises application.models.Employee.DoesNotExist
 ```
 
@@ -613,7 +672,9 @@ the_other_bobs = (
     in a single operation.
 
 ```python
-Employee.objects.filter(first_name='Bob').update('Robert')
+Employee.objects.filter(
+    first_name='Bob'
+).update(first_name='Robert')
 ```
 
 * `exists` - Use this method if you want to check
@@ -621,7 +682,8 @@ Employee.objects.filter(first_name='Bob').update('Robert')
     that match the condition you want to check.
 
 ```python
-has_bobs = Employee.objects.filter(first_name='Bob').exists()
+has_bobs = Employee.objects.filter(
+    first_name='Bob').exists()
 ```
 
 * `count` - Check how many rows match a condition.
@@ -630,7 +692,8 @@ has_bobs = Employee.objects.filter(first_name='Bob').exists()
     than trying to use `len` on a queryset.
 
 ```python
-how_many_bobs = Employee.objects.filter(first_name='Bob').count()
+how_many_bobs = Employee.objects.filter(
+    first_name='Bob').count()
 ```
 
 * `none` - This returns an empty queryset for the model.
@@ -651,11 +714,16 @@ if not is_hr:
     We use `order_by` to tell how we want the results arranged.
 
 ```python
->>> a_bob = Employee.objects.filter(first_name='Bob').order_by(
+>>> a_bob = Employee.objects.filter(
+...     first_name='Bob').order_by(
 ...     'last_name').last()
 >>> print(a_bob.last_name)
 Ross
 ```
+
+An `order_by` operation can also reverse the order of the results.
+To do this, add a dash before the field name
+like `order_by('-last_name')`.
 
 With the knowledge
 of how you can interact
@@ -669,7 +737,12 @@ in models
 
 The `Employee` table that I've used
 as the example
+{{< web >}}
 for this article
+{{< /web >}}
+{{< book >}}
+for this chapter
+{{< /book >}}
 only has three `CharField` fields
 on the model.
 The choice was deliberate
@@ -679,16 +752,21 @@ to absorb a bit about the Django ORM
 and working with querysets
 before seeing other data types.
 
+{{< web >}}
 We saw in the forms article
+{{< /web >}}
+{{< book >}}
+We saw in the forms chapter
+{{< /book >}}
 that Django's form system
 includes a wide variety
 of form fields.
 If you look at the
-{{< extlink "https://docs.djangoproject.com/en/3.0/ref/forms/fields/" "Form fields" >}} reference
+{{< extlink "https://docs.djangoproject.com/en/4.1/ref/forms/fields/" "Form fields" >}} reference
 and compare the list
 of types
 to those in the
-{{< extlink "https://docs.djangoproject.com/en/3.0/ref/models/fields/" "Model field reference" >}},
+{{< extlink "https://docs.djangoproject.com/en/4.1/ref/models/fields/" "Model field reference" >}},
 you can observe a lot of overlap.
 
 Like their form counterparts,
@@ -716,10 +794,18 @@ from django.db import models
 def strength_generator():
     return random.randint(1, 20)
 
-class DungeonsAndDragonsCharacter(models.Model):
-    name = models.CharField(max_length=100, default='Conan')
-    # Important to note: Pass the function, do not *call* the function!
-    strength = models.IntegerField(default=strength_generator)
+class DungeonsAndDragonsCharacter(
+    models.Model
+):
+    name = models.CharField(
+        max_length=100,
+        default='Conan'
+    )
+    # Important: Pass the function,
+    # do not *call* the function!
+    strength = models.IntegerField(
+        default=strength_generator
+    )
 ```
 
 * `unique` - When a field value must be unique
@@ -731,10 +817,15 @@ class DungeonsAndDragonsCharacter(models.Model):
 
 ```python
 class ImprobableHero(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(
+        max_length=100,
+        unique=True
+    )
 
 # There can be only one.
-ImprobableHero.objects.create(name='Connor MacLeod')
+ImprobableHero.objects.create(
+    name='Connor MacLeod'
+)
 ```
 
 * `null` - A relational database has the ability
@@ -767,9 +858,12 @@ class Person(models.Model):
     age = models.IntegerField()
     # This field could be unknown and contain NULL.
     # In Python, a NULL db value will appear as None.
-    weight = models.IntegerField(null=True)
+    weight = models.IntegerField(
+        null=True
+    )
 ```
 
+{{< web >}}
 * `blank` - The `blank` attribute is often used
     in conjunction with the `null` attribute.
     While the `null` attribute allows a database
@@ -782,14 +876,34 @@ class Person(models.Model):
     by Django
     like in the Django administrator site
     which we'll talk about in the next article.
+{{< /web >}}
+{{< book >}}
+* `blank` - The `blank` attribute is often used
+    in conjunction with the `null` attribute.
+    While the `null` attribute allows a database
+    to store `NULL`
+    for a field,
+    `blank` allows *form validation*
+    to permit an empty field.
+    This is used by forms
+    which are automatically generated
+    by Django
+    like in the Django administrator site
+    which we'll talk about in the next chapter.
+{{< /book >}}
 
 ```python
 class Pet(models.Model):
-    # Not all pets have tails so we want auto-generated forms
+    # Not all pets have tails,
+    # so we want auto-generated forms
     # to allow no value.
-    length_of_tail = models.IntegerField(null=True, blank=True)
+    length_of_tail = models.IntegerField(
+        null=True,
+        blank=True
+    )
 ```
 
+{{< web >}}
 * `choices` - We saw `choices`
     in the forms article
     as a technique
@@ -801,6 +915,20 @@ class Pet(models.Model):
     that will ensure
     that only particular values are stored
     in a database field.
+{{< /web >}}
+{{< book >}}
+* `choices` - We saw `choices`
+    in the forms chapter
+    as a technique
+    for helping users pick the right value
+    from a constrained set.
+    `choices` can be set on the model.
+    Django can do validation
+    on the model
+    that will ensure
+    that only particular values are stored
+    in a database field.
+{{< /book >}}
 
 ```python
 class Car(models.Model):
@@ -811,7 +939,10 @@ class Car(models.Model):
         (4, 'Green'),
         (5, 'White'),
     ]
-    color = models.IntegerField(choices=COLOR_CHOICES, default=1)
+    color = models.IntegerField(
+        choices=COLOR_CHOICES,
+        default=1
+    )
 ```
 
 * `help_text` - As applications get bigger
@@ -831,9 +962,10 @@ class Policy(models.Model):
     is_section_987_123_compliant = models.BooleanField(
         default=False,
         help_text=(
-            'For policies that only apply on leap days'
-            ' in accordance with Section 987.123'
-            ' of the Silly Draconian Order'
+        'For policies that only apply'
+        ' on leap days in accordance'
+        ' with Section 987.123'
+        ' of the Silly Draconian Order'
         )
     )
 ```
@@ -852,7 +984,12 @@ to link different types
 of data together.
 We got a brief example
 of this earlier
+{{< web >}}
 in this article
+{{< /web >}}
+{{< book >}}
+in this chapter
+{{< /book >}}
 when we considered
 an employee
 with multiple phone numbers.
@@ -866,11 +1003,21 @@ with multiple phone numbers might look like:
 from django.db import models
 
 class Employee(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    job_title = models.CharField(max_length=200)
-    phone_number_1 = models.CharField(max_length=32)
-    phone_number_2 = models.CharField(max_length=32)
+    first_name = models.CharField(
+        max_length=100
+    )
+    last_name = models.CharField(
+        max_length=100
+    )
+    job_title = models.CharField(
+        max_length=200
+    )
+    phone_number_1 = models.CharField(
+        max_length=32
+    )
+    phone_number_2 = models.CharField(
+        max_length=32
+    )
 ```
 
 This single table could hold a couple
@@ -898,19 +1045,30 @@ what if we had two separate models?
 from django.db import models
 
 class Employee(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    job_title = models.CharField(max_length=200)
+    first_name = models.CharField(
+        max_length=100
+    )
+    last_name = models.CharField(
+        max_length=100
+    )
+    job_title = models.CharField(
+        max_length=200
+    )
 
 class PhoneNumber(models.Model):
-    number = models.CharField(max_length=32)
+    number = models.CharField(
+        max_length=32
+    )
     PHONE_TYPES = (
         (1, 'Mobile'),
         (2, 'Home'),
         (3, 'Pager'),
         (4, 'Fax'),
     )
-    phone_type = models.IntegerField(choices=PHONE_TYPES, default=1)
+    phone_type = models.IntegerField(
+        choices=PHONE_TYPES,
+        default=1
+    )
 ```
 
 We've got two separate tables.
@@ -924,15 +1082,23 @@ Here is a slightly updated version of `PhoneNumber`.
 ...
 
 class PhoneNumber(models.Model):
-    number = models.CharField(max_length=32)
+    number = models.CharField(
+        max_length=32
+    )
     PHONE_TYPES = (
         (1, 'Mobile'),
         (2, 'Home'),
         (3, 'Pager'),
         (4, 'Fax'),
     )
-    phone_type = models.IntegerField(choices=PHONE_TYPES, default=1)
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    phone_type = models.IntegerField(
+        choices=PHONE_TYPES,
+        default=1
+    )
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE
+    )
 ```
 
 This update says that every phone number must now be associated
@@ -944,7 +1110,7 @@ In this case, `CASCADE` means
 that deleting an employee row will cascade
 and delete any of the employee's related phone numbers too.
 
-The key to how this works is by understanding *keys*.
+The key to how this works lies in understanding *keys*.
 When you make a Django model,
 you get an extra field added
 to your model
@@ -992,7 +1158,10 @@ If we wanted to get Tom's phone numbers,
 then one possible way would be:
 
 ```python
-tom = Employee.objects.get(first_name='Tom', last_name='Bombadil')
+tom = Employee.objects.get(
+    first_name='Tom',
+    last_name='Bombadil'
+)
 phone_numbers = PhoneNumber.objects.filter(employee=tom)
 ```
 
@@ -1004,8 +1173,8 @@ SELECT
     "application_phonenumber"."number",
     "application_phonenumber"."phone_type",
     "application_phonenumber"."employee_id"
-    FROM "application_phonenumber"
-    WHERE "application_phonenumber"."employee_id" = 1
+FROM "application_phonenumber"
+WHERE "application_phonenumber"."employee_id" = 1
 ```
 
 In the database,
@@ -1046,11 +1215,18 @@ What if we tried to model this with `ForeignKey` fields?
 from django.db import models
 
 class Person(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(
+        max_length=128
+    )
 
 class House(models.Model):
-    address = models.CharField(max_length=256)
-    resident = models.ForeignKey(Person, on_delete=models.CASCADE)
+    address = models.CharField(
+        max_length=256
+    )
+    resident = models.ForeignKey(
+        Person,
+        on_delete=models.CASCADE
+    )
 ```
 
 This version shows a scenario
@@ -1067,11 +1243,18 @@ of the modeling relationship?
 from django.db import models
 
 class House(models.Model):
-    address = model.CharField(max_length=256)
+    address = model.CharField(
+        max_length=256
+    )
 
 class Person(models.Model):
-    name = models.CharField(max_length=128)
-    house = models.ForeignKey(House, on_delete_models.CASCADE)
+    name = models.CharField(
+        max_length=128
+    )
+    house = models.ForeignKey(
+        House,
+        on_delete=models.CASCADE
+    )
 ```
 
 In this version,
@@ -1097,11 +1280,17 @@ Here's the new modeling.
 from django.db import models
 
 class Person(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(
+        max_length=128
+    )
 
 class House(models.Model):
-    address = models.CharField(max_length=256)
-    residents = models.ManyToManyField(Person)
+    address = models.CharField(
+        max_length=256
+    )
+    residents = models.ManyToManyField(
+        Person
+    )
 ```
 
 How does this work at the database level?
@@ -1123,9 +1312,9 @@ that contain primary keys from each model.
 
 Let's think of an example
 to see what this looks like.
-Suppose there are three people records
+Suppose there are three `Person` records
 with primary keys of 1, 2, and 3.
-Let's also suppose that there are three houses
+Let's also suppose that there are three `House` records
 with primary keys of 97, 98, and 99.
 To prove that the many-to-many relationship works
 in both directions,
@@ -1150,7 +1339,7 @@ Because of the joining table,
 Django is able to query either side of the table
 to get related houses or residents.
 
-We can access the many side
+We can access the "many" side
 of each model using a queryset.
 `residents` will be a `ManyRelatedManager`
 and, like other managers,
@@ -1161,14 +1350,16 @@ Getting the reverse direction is a little less obvious.
 Django will add another `ManyRelatedManager`
 to the `Person` model automatically.
 The name of that manager is the model name joined with `_set`.
-In this circumstance,
+In this case,
 that name is `house_set`.
 You can also provide a `related_name` attribute
 to the `ManyToManyField` if you want a different name
 like if you wanted to call it `houses` instead.
 
 ```python
-house = House.objects.get(address='123 Main St.')
+house = House.objects.get(
+    address='123 Main St.'
+)
 # Note the use of `all()`!
 for resident in house.residents.all():
     print(resident.name)
@@ -1178,7 +1369,8 @@ for house in person.house_set.all():
     print(house.address)
 ```
 
-Understanding `ForeignKey` and `ManyToManyField` is an important step
+Understanding the Django models fields
+of `ForeignKey` and `ManyToManyField` is an important step
 to modeling your problem domain well.
 By having these tools available to you,
 you can begin to create many
@@ -1187,7 +1379,12 @@ with real world problems.
 
 ## Summary
 
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we've explored:
 
 * How to set up a database for your project.
@@ -1203,7 +1400,12 @@ into a database,
 **you have all the core tools
 for building an interactive website
 for your users!**
+{{< web >}}
 In this series,
+{{< /web >}}
+{{< book >}}
+In this book,
+{{< /book >}}
 we have examined:
 
 * URL handling
@@ -1223,7 +1425,7 @@ from the pack.
 
 First on the list is the built-in
 Django administrators site
-that let's you explore the data
+that lets you explore the data
 that you store
 in your database.
 We'll cover:
@@ -1232,6 +1434,7 @@ We'll cover:
 * How to make your models appear in the admin
 * How to create extra actions that your admin users can do
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -1242,3 +1445,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}

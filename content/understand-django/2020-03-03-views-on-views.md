@@ -50,7 +50,7 @@ the Django view.
 A view is a chunk of code
 that receives an HTTP request
 and returns an HTTP response.
-Views describe Django's entire purpose:
+Views are where you use Django's core functionality:
 to respond to requests
 made to an application
 on the internet.
@@ -59,14 +59,13 @@ You might notice
 that I'm a bit vague
 about "chunk of code."
 That was deliberate.
-The reason is because views come
+The reason is that views come
 in multiple forms.
-To call views *functions*
-would only be part
+To say views are *functions*
+would be part
 of the story.
-To call them *classes*
-would be a different chapter
-in the story.
+Later chapters in that story cover
+how they can also be implemented in *classes*.
 
 Even if I attempted
 to call views *callables,*
@@ -74,6 +73,9 @@ I still would not portray them accurately
 because of the ways
 that certain types of views
 get plugged into a Django app.
+For instance,
+a view based on a class will *produce* a callable
+as we'll see in a later section.
 
 Let's start with functions
 since I think they are the gentlest introduction
@@ -81,9 +83,8 @@ to views.
 
 ## Function Views
 
-A function view is exactly that, a function.
-The function takes an instance
-of `HttpRequest`
+A function view is precisely that, a function.
+The function takes an `HttpRequest` instance
 as input
 and returns an `HttpResponse`
 (or one of its many subclasses)
@@ -100,7 +101,7 @@ def hello_world(request):
     return HttpResponse('Hello World')
 ```
 
-If you added that view
+Adding the `hello_world` view
 to a URL configuration
 which we learned about
 {{< web >}}
@@ -109,7 +110,7 @@ in the last article,
 {{< book >}}
 in the last chapter,
 {{< /book >}}
-then you could visit a browser
+you could visit a browser
 at the URL
 and find the text "Hello World"
 on your browser page.
@@ -131,23 +132,23 @@ Django does most of the heavy lifting
 for us.
 The raw HTTP request fits neatly
 into the `HttpRequest` class.
-Our example view doesn't make any use
-of that information,
+Our example view doesn't use that information,
 but it's accessible
 if we need it.
 Likewise,
 we're not using much
-of `HttpResponse`,
-but it's doing all the work
-to make sure it can appear
+of `HttpResponse`.
+Still,
+it's doing all the work
+to ensure it appears
 on a user's browser
-and deliver our message.
+and delivers our message.
 
 To see what we can do with views,
 let's look closely
 at `HttpRequest` and `HttpResponse`
 to get a glimpse
-and what's going on.
+at what's going on.
 
 ## HttpRequest
 
@@ -179,6 +180,7 @@ name=Science
 &friday=on
 ```
 
+{{< web >}}
 This example is from a side project
 that uses school data.
 I have trimmed some lines out
@@ -186,16 +188,17 @@ of the request so it will fit better
 on the screen,
 and I did some slight reformatting
 to make the content a bit clearer.
+{{< /web >}}
 
 When Django receives a request like this,
 it will parse the data
-and store the data in an `HttpRequest` instance.
+and store it in an `HttpRequest` instance.
 The request provides convenient access
 to all parts
 of the raw data
 with helpful attributes
 for the most commonly used parameters.
-Considering the example,
+When considering the example,
 the request would have:
 
 * `method` - This matches the HTTP method of `POST`
@@ -205,15 +208,14 @@ the request would have:
     on how to handle the data
     in the request.
     The example value would be `application/x-www-form-urlencoded `
-    to indicate that this is user submitted form data.
+    to indicate that this is user-submitted form data.
 * `POST` - For POST requests,
     Django processes the form data
     and stores the data
     into a dictionary-like structure.
     `request.POST['name']` would be `Science`
     in our example.
-* `GET` - For a GET request,
-    anything added to the query string
+* `GET` - Anything added to the query string
     (i.e., the content after a `?` character
     such as `student=Matt`
     in `/courses/?student=Matt` is stored
@@ -221,10 +223,15 @@ the request would have:
 * `headers` - This is where all the HTTP headers
     like `Host`, `Accept-Language`,
     and the others are stored.
+    `headers` is also dictionary-like
+    and can be accessed like `request.headers['Host']`.
 
 Other attributes are available
 to `HttpRequest`,
-but that list will get you far to get started.
+but that list will get you far enough to get started.
+Check out
+{{< extlink "https://docs.djangoproject.com/en/4.1/ref/request-response/" "Request and response objects" >}}
+for the other attributes.
 
 I should also note
 that `HttpRequest` instances are a common place
@@ -241,13 +248,13 @@ if you need user management
 {{< book >}}
 (which we will explore in a future chapter),
 {{< /book >}}
-then there is code
+there is code
 that can attach a `request.user` attribute
 to represent a user
 in your system.
 It's *very* handy.
 
-I like to think of `HttpRequest` objects
+You can think of `HttpRequest` objects
 as the common interface
 for most of the inputs
 that my code uses.
@@ -276,12 +283,12 @@ Some of the common `HttpResponse` attributes include:
     of a request.
     `200` is the usual success code.
     Any number from `400` and up will indicate some error,
-    like `404` when something is not found.
+    like `404` when a requested resource is not found.
 * `content` - This is the content
     that you provide to the user.
     The response stores this data as bytes.
     If you supply Python string data,
-    Django will encode to bytes for you.
+    Django will encode it to bytes for you.
 
 ```python
 >>> from django.http import HttpResponse
@@ -297,7 +304,6 @@ of subclasses
 for common uses.
 Let's look at some:
 
-{{< web >}}
 * `HttpResponseRedirect` - You may want to send a user
     to a different page.
     Perhaps the user bought something
@@ -309,51 +315,13 @@ Let's look at some:
 * `HttpResponseNotFound` - This is the subclass used
     to create a `404 Not Found` response.
     Django provides some helper functions to return this
-    so you may not use this subclass directly,
+    so you might not use this subclass directly,
     but it's good to know it's available.
-* `HttpResponseForbidden` - This type of response happens
+* `HttpResponseForbidden` - This type of response can be used
     when you don't want a user
     to access a part
-    of your website.
-* `JsonResponse` - I haven't focused on JSON yet
-    in this series,
-    but it's a data format which matches closely
-    to Python native data types
-    and can be used
-    to communicate with JavaScript.
-{{< /web >}}
-{{< book >}}
-* `HttpResponseRedirect` - You may want to send a user
-    to a different page.
-    Perhaps the user bought something
-    on your site,
-    and you would like them to see a receipt page
-    of their order.
-    This subclass is perfect
-    for that scenario.
-* `HttpResponseNotFound` - This is the subclass used
-    to create a `404 Not Found` response.
-    Django provides some helper functions to return this
-    so you may not use this subclass directly,
-    but it's good to know it's available.
-* `HttpResponseForbidden` - This type of response happens
-    when you don't want a user
-    to access a part
-    of your website.
-* `JsonResponse` - I haven't focused on JSON yet
-    in this book,
-    but it's a data format which matches closely
-    to Python native data types
-    and can be used
-    to communicate with JavaScript.
-{{< /book >}}
-
-```python
->>> from django.http import JsonResponse
->>> response = JsonResponse({'hello': 'world'})
->>> response.content
-b'{"hello": "world"}'
-```
+    of your website
+    (i.e., HTTP status `403 Forbidden`).
 
 Aside from the subclasses,
 Django has other techniques
@@ -425,7 +393,11 @@ from the logic.
 from django.shortcuts import render
 
 def my_html_view(request):
-    return render(request, "template.html", {})
+    return render(
+        request,
+        "template.html",
+        {}
+    )
 ```
 
 And we would have another file named `template.html` containing:
@@ -440,14 +412,15 @@ And we would have another file named `template.html` containing:
 ```
 
 {{< web >}}
-The important part for this article is not about templates themselves.
+The important part for this article is not about the templates themselves.
 {{< /web >}}
 {{< book >}}
-The important part for this chapter is not about templates themselves.
+The important part for this chapter is not about the templates themselves.
 {{< /book >}}
-What's worth noting is that `render` returns an `HttpResponse` instance
-that will contain the rendered template
-as the content.
+What's worth noting is that `render`
+loads the content from `template.html`,
+gets the output,
+and adds that output to an `HttpResponse` instance.
 
 That wraps up `HttpRequest` and `HttpResponse`.
 With those building blocks,
@@ -489,6 +462,13 @@ class SampleView(View):
 The `get` method
 on the class
 corresponds to a `GET` HTTP request.
+`*args` and `**kwargs` are a common convention
+in Python
+to make a method or function
+that accepts any number
+of positional or keyword based arguments.
+We need these to match the expect method signature
+that Django requires for CBVs.
 Similarly,
 you would write a `post` method
 to respond to a `POST` HTTP request
@@ -509,9 +489,9 @@ urlpatterns = [
 
 Note that we don't pass `SampleView`
 to `path` as is.
-`path` expects a callable object
-so we must call `as_view`
-which is a class method
+`path` expects a callable object,
+so we must call `as_view`,
+a class method
 that returns a function
 that will call the code
 in our class.
@@ -520,16 +500,16 @@ At this point,
 I would be suitably unimpressed
 if I were in your shoes.
 Why would we add all
-of this boilerplate code
+this boilerplate code
 when you can make a function
 and be done?
 If this were the full story,
 I would absolutely agree with you.
-This doesn't add much
+A class-based view doesn't add much
 beyond the function-based version.
 If anything,
-it has more to remember
-so it's probably more confusing.
+CBVs have more to remember,
+so they are probably more confusing.
 
 Where class-based views begin
 to shine
@@ -548,7 +528,7 @@ to the full framework so far.
 ## Out Of The Box Views
 
 I won't exhaustively cover all the class-based views
-because there are a lot of them.
+because there are many.
 Also,
 {{< web >}}
 if you're joining this article series
@@ -565,8 +545,7 @@ and some of the views will not make much sense.
 
 ### RedirectView
 
-This is a view to use
-when you want to send users
+Use `RedirectView` to send users
 of your site
 to a different place.
 You *could* make a view
@@ -594,7 +573,7 @@ urlpatterns = [
 ```
 
 `RedirectView` can use `url`
-for a full URL
+for a full URL,
 or it can use `pattern_name`
 if you need to route
 to a view
@@ -617,6 +596,7 @@ class SubclassedRedirectView(RedirectView):
 
 urlpatterns = [
     path("old-path/", SubclassedRedirectView.as_view()),
+    # The RedirectView below acts like SubclassedRedirectView.
     path("old-path/", RedirectView.as_view(pattern_name='new-view')),
     path("new-path/", NewView.as_view(), name='new-view'),
 ]
@@ -630,14 +610,14 @@ Earlier in the article,
 {{< book >}}
 Earlier in the chapter,
 {{< /book >}}
-we saw briefly how we can separate web page layout
+we briefly saw how to separate web page layout
 from the logic needed
 to build a page
 with templates.
 
 Templates are so commonly used
 that Django provides a class
-that knows how to produce a proper response
+that knows how to produce a response
 with nothing more than a template name.
 
 An example looks like:
@@ -673,19 +653,17 @@ Django has views that will:
 * Pull data from a database
     and show an individual record
     to the user
-    (e.g., a webpage to see facts about an individual movie).
+    (e.g., a webpage to see facts about a particular movie).
 * Pull data from a database
     and show information
     from a collection of records
     to the user
     (e.g., showing the cast of actors from a movie).
-* Allow a user to create or update data
-    that will be saved to a database.
 * Show data from specific time ranges
     like days, weeks, and months.
 
 As we continue to explore Django,
-I will discuss these views
+We will discuss these views
 when their related topic (like forms) is the primary subject
 {{< web >}}
 of an article.
@@ -712,14 +690,14 @@ with additional capabilities.
 A decorator can wrap a view function
 to provide new behavior
 to a view.
-This is useful
+Decorators are helpful
 when you have common functionality
 that you want to add to many views
-without copying and pasting a lot of code around.
+without copying and pasting a lot of code.
 
 Mixin classes serve a very similar purpose
 as decorators,
-but behave with Python's multiple inheritance feature
+but use Python's multiple inheritance feature
 of classes
 to "mix in" the new behavior
 with an existing class-based view.
@@ -730,17 +708,24 @@ When you work
 with function-based views,
 there is a challenge
 when handling different HTTP methods.
+By default,
+a function based view can receive requests
+from *any* HTTP method.
 Some views will handle multiple methods like:
 
 ```python
 # application/views.py
-from django.http import HttpResponse
+from django.http import (
+    HttpResponse,
+    HttpResponseNotAllowed,
+)
 
 def multi_method_view(request):
     if request.method == 'GET':
         return HttpResponse('Method was a GET.')
     elif request.method == 'POST':
         return HttpResponse('Method was a POST.')
+    return HttpResponseNotAllowed()
 ```
 
 This view uses the `request` instance `method` attribute
@@ -752,11 +737,14 @@ We could write:
 
 ```python
 # application/views.py
-from django.http import Http404, HttpResponse
+from django.http import (
+    HttpResponse,
+    HttpResponseNotAllowed,
+)
 
 def guard_clause_view(request):
     if request.method != 'POST':
-        raise Http404()
+        return HttpResponseNotAllowed()
 
     return HttpResponse('Method was a POST.')
 
@@ -766,10 +754,10 @@ def if_clause_view(request):
     if request.method == 'POST':
         return HttpResponse('Method was a POST.')
     else:
-        raise Http404()
+        return HttpResponseNotAllowed()
 ```
 
-Both of these techniques work,
+Both techniques work,
 but the code is a little messier
 because of the extra indentation.
 Instead, we can use the `require_POST` decorator
@@ -790,6 +778,11 @@ This version states the expectation up front
 with the decorator
 and declares the contract
 that the view will work with.
+If a user tries a different method
+(like a `GET`),
+then Django will respond
+with HTTP status code `405`,
+which is an error code for "method not allowed."
 
 Another common decorator you may encounter is the `login_required` decorator.
 When we get to the subject
@@ -807,6 +800,10 @@ from django.http import HttpResponse
 def the_view(request):
     return HttpResponse('This view is only viewable to authenticated users.')
 ```
+
+Any unauthenticated user will be redirected automatically
+to the login page
+for your web app.
 
 A final example
 of a useful built-in decorator
@@ -899,19 +896,24 @@ Because of the way
 that Python handles multiple inheritance,
 you should be sure to include mixin classes
 to the left
-in the list of classes.
+in the list of inherited base classes.
 This will ensure that Python will behave appropriately
 with these classes.
+The exact reason for this placement is
+because of Python's method resolution order (MRO) rules
+when using multiple inheritance.
+MRO is outside of our scope,
+but that's what you can search for
+if you want to learn more.
 
 There are plenty
 of other mixin classes.
-In fact,
-most of Django's built-in class-based views are constructed
+Most of Django's built-in class-based views are constructed
 by composing various mixin classes together.
 If you'd like to see how they are constructed,
-check out {{< extlink "https://ccbv.co.uk/" "Classy Class-Based Views" >}}
-which is a site showing the built-in CBVs
-along with the mixins and attributes available
+check out {{< extlink "https://ccbv.co.uk/" "Classy Class-Based Views" >}},
+a site showing the built-in CBVs
+and the mixins and attributes available
 to those classes.
 
 ## Summary
@@ -927,6 +929,10 @@ We've looked at:
 
 {{< web >}}
 In the next article,
+{{< /web >}}
+{{< book >}}
+In the next chapter,
+{{< /book >}}
 we'll see how views can mix static layout
 with the dynamic data we provide
 by using templates.
@@ -941,6 +947,7 @@ We're going to see:
 * Built-in functions available to templates
 * Customizing templates with your own code extensions
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up

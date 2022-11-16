@@ -23,18 +23,28 @@ tags:
 
 ---
 
+{{< web >}}
 In the previous
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
 we saw how Django templates work
 to produce a user interface.
 That's fine
-if you only need need to display a user interface,
+if you only need to display a user interface,
 but what do you do
+{{< /web >}}
+{{< book >}}
+What do you do
+{{< /book >}}
 if you need your site
 to interact with users?
 You use Django's form system!
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we'll focus
 on how to work with web forms
 using the Django form system.
@@ -73,7 +83,6 @@ It's also useful to know that leaving out `action`
 or using `action=""` will send any form data
 as an HTTP request to the same URL
 that the user's browser is on.
-The default behavior of `action` is sometimes handy to know.
 
 The `method` attribute dictates which HTTP method to use
 and can have a value of `GET` or `POST`.
@@ -176,7 +185,7 @@ Django's form features act as a bridge
 between HTML forms
 and Python classes and data types.
 When presenting a form
-to a user in view,
+to a user via a view,
 the form system is able
 to display the proper HTML form tags
 and structure.
@@ -198,17 +207,20 @@ Here's an example that we can examine.
 from django import forms
 
 class ContactForm(forms.Form):
-    name = forms.CharField(max_length=100)
+    name = forms.CharField(
+        max_length=100
+    )
     email = forms.EmailField()
-    message = forms.CharField(max_length=1000)
+    message = forms.CharField(
+        max_length=1000
+    )
 ```
 
-1. Django forms are sub-classes
-    of the `Form` class.
+* User-defined Django forms should subclass the `Form` class.
     This class adds a lot of powerful functionality
     that will aid us
     as we explore more.
-2. The data that we want to collect is listed
+* The data that we want to collect is listed
     as class level attributes.
     Each field of the form is a certain field type
     that has its own characteristics
@@ -226,9 +238,16 @@ This method will use paragraph tags instead
 for the form elements.
 If the template looks like:
 
+{{< web >}}
 ```django
 {{ form.as_p }}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{{ form.as_p }}
+```
+{{< /book >}}
 
 Then Django will render:
 
@@ -242,7 +261,7 @@ Then Django will render:
 </p>
 ```
 
-To make it possible submit the form,
+To make it possible to submit the form,
 we need to wrap this rendered output
 with a `form` tag
 and include a submit button
@@ -254,24 +273,44 @@ the world is full of nefarious people
 who would love to hack your application
 to steal data
 from others.
-A CSRF token is security measure
+A CSRF token is a security measure
 that Django includes to make it harder
 for malicious actors
 to tamper with your form's data.
 We'll talk more about security
+{{< web >}}
 in a future article.
+{{< /web >}}
+{{< book >}}
+in a future chapter.
+{{< /book >}}
 For now,
 sprinkle the token into your forms
 with Django's built-in template tag
 and everything should work.
 
+{{< web >}}
 ```django
-<form action="{% url "some-form-view" %}" method="POST">
+<form action="{% url "some-form-url" %}" method="POST">
     {% csrf_token %}
     {{ form.as_p }}
-    <p><input type="submit" value="Send the form!"></p>
+    <p><input
+        type="submit"
+        value="Send the form!"></p>
 </form>
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+<form action="{% url "some-form-url" %}" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p><input
+        type="submit"
+        value="Send the form!"></p>
+</form>
+```
+{{< /book >}}
 
 That's how a form gets displayed.
 Now let's look at a view that handles the form properly.
@@ -279,7 +318,7 @@ When working with form views,
 we will often use a view
 that is able to handle
 both `GET` and `POST` HTTP requests.
-Here's a full form
+Here's a full view
 that we can break down piece by piece.
 The example uses a function view
 for simplicity,
@@ -299,12 +338,19 @@ def contact_us(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
-            # Do something with the form data like send an email.
-            return HttpResponseRedirect(reverse('some-form-success-view'))
+            # Do something with the form data
+            # like send an email.
+            return HttpResponseRedirect(
+                reverse('some-form-success-url')
+            )
     else:
         form = ContactForm()
 
-    return render(request, 'contact_form.html', {'form': form})
+    return render(
+        request,
+        'contact_form.html',
+        {'form': form}
+    )
 ```
 
 If we start
@@ -318,8 +364,8 @@ and renders a template
 with the `form`
 in the context.
 
-`contact_form.html` would contain the Django template
-that is above to display the HTML form
+`contact_form.html` contains the Django template above
+to display the HTML form
 to the user.
 When the user clicks "Send the form!",
 another request comes
@@ -334,7 +380,12 @@ The form submission data is stored
 in `request.POST`,
 which is a dictionary-like object
 that we first encountered
+{{< web >}}
 in the views article.
+{{< /web >}}
+{{< book >}}
+in the views chapter.
+{{< /book >}}
 By passing `request.POST`
 to the form's constructor,
 we create a form with data.
@@ -346,7 +397,12 @@ With the form ready,
 the view checks if the data is valid.
 We'll talk about form validation
 in detail later
+{{< web >}}
 in this article.
+{{< /web >}}
+{{< book >}}
+in this chapter.
+{{< /book >}}
 In this instance,
 you can see that `is_valid` could return `False`
 if the form data contained "I am not an email address"
@@ -384,16 +440,24 @@ from django.urls import reverse
 from .forms import ContactForm
 
 class ContactUs(FormView):
-    form = ContactForm
-    template = 'contact_form.html'
+    form_class = ContactForm
+    template_name = 'contact_form.html'
 
     def get_success_url(self):
-        return reverse('some-form-success-view')
+        return reverse(
+            'some-form-success-view'
+        )
 
     def form_valid(self, form):
-        # Do something with the form data like send an email.
+        # Do something with the form data
+        # like send an email.
         return super().form_valid(form)
 ```
+
+The `FormView` expects a form class and template name
+and provides some methods to override
+for the common places
+where your own application logic should live.
 
 ## Form Fields
 
@@ -403,10 +467,15 @@ to the kinds
 of fields
 that forms can use.
 The extensive list of fields is
-in {{< extlink "https://docs.djangoproject.com/en/3.0/ref/forms/fields/" "the Django documentation" >}},
+in {{< extlink "https://docs.djangoproject.com/en/4.1/ref/forms/fields/" "the Django documentation" >}},
 and we will look at a few
 of the most common ones
+{{< web >}}
 in this article.
+{{< /web >}}
+{{< book >}}
+in this chapter.
+{{< /book >}}
 
 The first thing to remember about Django form fields is
 that they convert HTML form data
@@ -472,7 +541,9 @@ from django import forms
 
 class FeedbackForm(forms.Form):
     email = forms.EmailField()
-    comment = forms.CharField(widget=forms.Textarea)
+    comment = forms.CharField(
+        widget=forms.Textarea
+    )
 ```
 
 ### EmailField
@@ -497,7 +568,7 @@ The difference with this field comes
 from the data type that the form will provide
 after it is validated.
 A `DateField` will convert
-{{< extlink "https://docs.djangoproject.com/en/3.0/ref/settings/#datetime-input-formats" "a variety of string formats" >}}
+{{< extlink "https://docs.djangoproject.com/en/4.1/ref/settings/#datetime-input-formats" "a variety of string formats" >}}
 into a Python `datetime.date` object.
 
 ### ChoiceField
@@ -518,8 +589,14 @@ Here's a form that can do that.
 from django import forms
 
 class SurveyForm(forms.Form):
-    MEALS = [("b", "Breakfast"), ("l", "Lunch"), ("d", "Dinner")]
-    favorite_meal = forms.ChoiceField(choices=MEALS)
+    MEALS = [
+        ("b", "Breakfast"),
+        ("l", "Lunch"),
+        ("d", "Dinner")
+    ]
+    favorite_meal = forms.ChoiceField(
+        choices=MEALS
+    )
 ```
 
 This will contain a form
@@ -619,7 +696,7 @@ the form's data will be
 in a dictionary named `cleaned_data`
 with keys
 that match the field names
-declared by the forms.
+declared by the form.
 With the validated data,
 you access `cleaned_data` to do your work.
 For instance,
@@ -632,8 +709,13 @@ in the view like:
 if form.is_valid():
     email = form.cleaned_data['email']
     comment = form.cleaned_data['comment']
-    create_support_ticket(email, comment)
-    return HttpReponseRedirect(reverse('feedback-received'))
+    create_support_ticket(
+        email,
+        comment
+    )
+    return HttpReponseRedirect(
+        reverse('feedback-received')
+    )
 ```
 
 When `is_valid` is `False`,
@@ -674,12 +756,16 @@ from django import forms
 
 class SignUpForm(forms.Form):
     email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(
+        widget=forms.PasswordInput
+    )
 
     def clean_email(self):
         email = self.cleaned_data['email']
         if 'bob' not in email:
-            raise forms.ValidationError('Sorry, you are not a Bob.')
+            raise forms.ValidationError(
+                'Sorry, you are not a Bob.'
+            )
         return email
 ```
 
@@ -726,8 +812,14 @@ class HistoricalPersonForm(forms.Form):
         cleaned_data = super().clean()
         date_of_birth = cleaned_data.get('date_of_birth')
         date_of_death = cleaned_data.get('date_of_death')
-        if date_of_birth and date_of_death and date_of_birth > date_of_death:
-            raise forms.ValidationError('Birth date must be before death date.')
+        if (
+            date_of_birth and
+            date_of_death and
+            date_of_birth > date_of_death
+        ):
+            raise forms.ValidationError(
+                'Birth date must be before death date.'
+            )
         return cleaned_data
 ```
 
@@ -736,7 +828,7 @@ but we must be more careful.
 Individual field validations run first,
 but they may have failed!
 When clean methods fail,
-the form field is removed `cleaned_data`
+the form field is removed from `cleaned_data`
 so we can't do a direct key access.
 The clean method checks if the two dates are truthy and each has a value,
 then does the comparison between them.
@@ -763,7 +855,12 @@ Now that we know how to collect data
 from users,
 how can we make the application hold onto that data
 for them?
+{{< web >}}
 In the next article,
+{{< /web >}}
+{{< book >}}
+In the next chapter,
+{{< /book >}}
 we will begin to store data
 in a database.
 We'll work with:
@@ -775,6 +872,7 @@ We'll work with:
 * Saving new information into the database.
 * Asking the database for information that we stored.
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -785,3 +883,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}

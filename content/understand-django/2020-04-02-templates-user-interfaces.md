@@ -33,6 +33,9 @@ on templates.
 Templates are your primary tool
 in a Django project
 for generating a user interface.
+With templates,
+you'll be able to build the pages
+that users will see when they visit your web app.
 Let's see how templates hook into views
 and what features Django provides
 with its template system.
@@ -93,7 +96,7 @@ within a `templates` directory
 in each Django application
 in your project.
 Note that this also includes any third party applications
-so you should probably leave this to `True`.
+so you should probably leave this set to `True`.
 
 So,
 where should *your* templates go?
@@ -163,14 +166,15 @@ to produce a final output.
 To produce an `HttpResponse`
 that contains rendered output,
 we use the `render` function.
-Let's see an example.
+Let's see an example
+in the form of a function-based view (FBV).
 
 ```python
 # application/views.py
 
 from django.shortcuts import render
 
-def a_template_view(request):
+def hello_view(request):
     context = {'name': 'Johnny'}
     return render(
         request,
@@ -220,6 +224,26 @@ on this root concept
 and shows what else is possible
 in the Django template language.
 
+As an aside,
+HTML is a topic that we are not going to explore directly.
+HTML, the Hypertext Markup Language, is the language used
+on the web
+to describe the structure of a page.
+HTML is composed of tags
+and many of these tags work in pairs.
+For example,
+to make a *paragraph*,
+you can use a `p` tag,
+which is represented
+by wrapping `p` with greater than and less than symbols
+to form the "opening" tag.
+The "closing" tag is similar,
+but it includes a forward slash.
+
+```html
+<p>This is a paragraph example.</p>
+```
+
 {{< web >}}
 From the last article,
 {{< /web >}}
@@ -237,7 +261,8 @@ and calls code similar to `render`
 to provide an `HttpResponse`.
 Those examples were missing context data
 to combine with the template.
-A fuller example to replicate what is above would look like:
+A fuller example replicating the `hello_view` function-based view
+as a class-based-view would look like:
 
 ```python
 # application/views.py
@@ -268,7 +293,7 @@ a lot of the code that we need to write focuses
 on building up a truly dynamic context.
 I'm using static data in these examples
 to keep the mechanics of the template system clear.
-When you see me use context,
+When you see me use `context`,
 try to imagine more complex data building
 to create a user interface.
 
@@ -284,16 +309,13 @@ and insert it
 into the placeholders
 within the template.
 
-This most basic form
-of filling placeholders
-with context
-are template variables.
+Template variables are the most basic form
+of filling placeholders with context.
 The previous section showed an example
 by using the `name` variable.
-The context dictionary contained a `name` key
-and double curly braces
-like `{{ name }}` are
-where the `name` value is used.
+The context dictionary contains a `name` key,
+whose value appears anywhere in the template
+where that key is surrounded by double curly braces.
 
 We can also use a dot access
 when the context data is more complex.
@@ -357,11 +379,20 @@ with two core tags, `if` and `for`.
 The `if` tag is for handling conditional logic
 that your template might need.
 
+{{< web >}}
 ```django
 {% if user.is_authenticated %}
     <h1>Welcome, {{ user.username }}</h1>
 {% endif %}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% if user.is_authenticated %}
+    <h1>Welcome, {{ user.username }}</h1>
+{% endif %}
+```
+{{< /book >}}
 
 This example will only include this welcome message HTML header tag
 when the user is logged in
@@ -381,6 +412,7 @@ there are also `else` and `elif` tags
 that are accepted inside
 of an `if`/`endif` pair.
 
+{{< web >}}
 ```django
 {% if user.is_authenticated %}
     <h1>Welcome, {{ user.username }}</h1>
@@ -388,6 +420,16 @@ of an `if`/`endif` pair.
     <h1>Welcome, guest</h1>
 {% endif %}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% if user.is_authenticated %}
+    <h1>Welcome, {{ user.username }}</h1>
+{% else %}
+    <h1>Welcome, guest</h1>
+{% endif %}
+```
+{{< /book >}}
 
 In this case, only one of the header tags will render
 depending on whether the user is authenticated or not.
@@ -399,6 +441,7 @@ A `for` loop
 in Django templates
 behaves as you might expect.
 
+{{< web >}}
 ```django
 <p>Prices:</p>
 <ul>
@@ -407,6 +450,17 @@ behaves as you might expect.
 {% endfor %}
 </ul>
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+<p>Prices:</p>
+<ul>
+{% for item in items %}
+    <li>{{ item.name }} costs {{ item.price }}.</li>
+{% endfor %}
+</ul>
+```
+{{< /book >}}
 
 Django will loop over iterables
 like lists
@@ -436,7 +490,7 @@ Then the output would look roughly like:
 Occasionally,
 you may want to take some specific action
 on a particular element
-in the for loop.
+in the `for` loop.
 Python's built in `enumerate` function isn't available directly
 in templates,
 but a special variable called `forloop` is available
@@ -446,12 +500,22 @@ like `first` and `last`
 that you can use to make templates behave differently
 on certain loop iterations.
 
+{{< web >}}
 ```django
 Counting:
 {% for number in first_three_numbers %}
     {{ number }}{% if forloop.last %} is last!{% endif %}
 {% endfor %}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+Counting:
+{% for number in first_three_numbers %}
+    {{ number }}{% if forloop.last %} is last!{% endif %}
+{% endfor %}
+```
+{{< /book >}}
 
 This example would produce:
 
@@ -499,6 +563,23 @@ and must return a dictionary.
 The returned dictionary merges
 with any other context
 that will be passed to your template.
+
+Conceptually,
+when preparing to render
+and given a `context` dictionary
+that was passed to `render`,
+the template system will do something like:
+
+```python
+for processor in context_processors:
+    context.update(processor(request))
+
+# Continue on to template rendering
+```
+
+The actual code in the template system is more complex
+than this concept code sketch,
+but not by much!
 
 We can look
 at the actual definition of the `request` context processor included
@@ -604,6 +685,7 @@ Django helps you avoid this scenario entirely
 with a few tags.
 Let's make a new template called `base.html`.
 
+{{< web >}}
 ```django
 <!DOCTYPE html>
 <html>
@@ -615,11 +697,28 @@ Let's make a new template called `base.html`.
     </body>
 </html>
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet"
+            type="text/css"
+            href="styles.css">
+    </head>
+    <body>
+        {% block main %}{% endblock %}
+    </body>
+</html>
+```
+{{< /book >}}
 
 We've created a reusable template with the `block` tag!
 We can fix up our homepage
 to use this new template.
 
+{{< web >}}
 ```django
 {% extends "base.html" %}
 
@@ -627,6 +726,16 @@ to use this new template.
     <h1>Hello from the Home page</h1>
 {% endblock %}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% extends "base.html" %}
+
+{% block main %}
+    <h1>Hello from the Home page</h1>
+{% endblock %}
+```
+{{< /book >}}
 
 This new version of the homepage *extends* the base template.
 All the template had to do was define its own version
@@ -648,6 +757,13 @@ to change
 for an entire site.
 
 That's the power of Django's template extension system.
+Use `extend` when you need content
+that is mostly the same.
+Add a `block` section whenever you need to customize an extended page.
+You can extend a page by including multiple types of blocks.
+The example only shows a `main` block,
+but you might have pages that customize a `sidebar`, `header`, `footer`,
+or whatever might vary.
 
 Another powerful tool for reuse is the `include` tag.
 The `include` tag is useful
@@ -674,6 +790,7 @@ is now harder.
 We can decompose the template
 into smaller pieces.
 
+{{< web >}}
 ```django
 <!DOCTYPE html>
 <html>
@@ -685,9 +802,23 @@ into smaller pieces.
     {% include "footer.html" %}
 </html>
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+<!DOCTYPE html>
+<html>
+    {% include "head.html" %}
+    <body>
+        {% include "navigation.html" %}
+        {% block main %}{% endblock %}
+    </body>
+    {% include "footer.html" %}
+</html>
+```
+{{< /book >}}
 
 The `include` tag can move those extra pieces around.
-By providing a good name to your templates,
+By providing a good name for your templates,
 if you needed to change the structure of some section
 like navigation,
 you could go to the template
@@ -707,7 +838,7 @@ that can supercharge your UI.
 ## The Templates Toolbox
 
 The Django documentation includes
-a {{< extlink "https://docs.djangoproject.com/en/4.0/ref/templates/builtins/" "large set of built-in tags" >}}
+a {{< extlink "https://docs.djangoproject.com/en/4.1/ref/templates/builtins/" "large set of built-in tags" >}}
 that you can use
 in your projects.
 We aren't going to cover all of them,
@@ -719,7 +850,12 @@ of what is available.
 One of the most used built-in tags
 aside from what we've already covered
 is the `url` tag.
+{{< web >}}
 Recall from the article
+{{< /web >}}
+{{< book >}}
+Recall from the chapter
+{{< /book >}}
 on URLs
 that you can get the URL
 to a named view
@@ -752,9 +888,16 @@ Instead,
 our template can directly create the proper URL.
 Here's what `a_template.html` might look like instead:
 
+{{< web >}}
 ```django
 <a href="{% url "a_named_view" %}">Go to a named view</a>
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+<a href="{% url "a_named_view" %}">Go to a named view</a>
+```
+{{< /book >}}
 
 The `url` tag is the template equivalent
 of the `reverse` function.
@@ -775,9 +918,16 @@ you can tell your template how to display the current time.
 Want to add a current copyright year to your website?
 No problem!
 
+{{< web >}}
 ```django
 &copy; {% now "Y" %} Your Company LLC.
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+&copy; {% now "Y" %} Your Company LLC.
+```
+{{< /book >}}
 
 One final built-in tag to consider is the `spaceless` tag.
 HTML is *partially* sensitive to whitespace.
@@ -802,6 +952,7 @@ when working with CSS.
 Knowing that the whitespace can affect layout,
 we can use `spaceless` like so:
 
+{{< web >}}
 ```django
 {% spaceless %}
 <ul class="navigation">
@@ -810,6 +961,17 @@ we can use `spaceless` like so:
 </ul>
 {% endspaceless %}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% spaceless %}
+<ul class="navigation">
+    <li><a href="/home/">Home</a></li>
+    <li><a href="/about/">About</a></li>
+</ul>
+{% endspaceless %}
+```
+{{< /book >}}
 
 This neat little template tag will remove all the spaces
 between HTML tags
@@ -823,7 +985,9 @@ By removing the extra space,
 you may get a more consistent experience
 with your CSS styling
 and save yourself some frustration.
+{{< web >}}
 (I had to trim the output to fit better on the screen.)
+{{< /web >}}
 
 There is another kind of built-in
 that we have not looked at yet.
@@ -833,9 +997,17 @@ in your templates.
 The filter syntax is a bit interesting.
 It looks like:
 
+{{< web >}}
 ```django
 Here's a filter example: {{ a_variable|some_filter:"filter arguments" }}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+Here's a filter example:
+{{ a_variable|some_filter:"filter arguments" }}
+```
+{{< /book >}}
 
 The important element is the pipe character directly
 after a variable.
@@ -853,19 +1025,27 @@ in the context,
 you can use the `date` filter
 to control the format
 of the datetime.
-The `date` {{< extlink "https://docs.djangoproject.com/en/4.0/ref/templates/builtins/#date" "documentation" >}} shows
+The `date` {{< extlink "https://docs.djangoproject.com/en/4.1/ref/templates/builtins/#date" "documentation" >}} shows
 what options you can use
 to modify the format.
 
+{{< web >}}
 ```django
 {{ a_datetime|date:"Y-m-d" }}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{{ a_datetime|date:"Y-m-d" }}
+```
+{{< /book >}}
 
 If `a_datetime` was an instance of April Fools' Day,
 then it could return a string like `2020-04-01`.
 The `date` filter has many specifiers
-that will enable you to produce most date formatting outputs
-that you could think of.
+that will enable you to produce most
+of the date formatting outputs
+you could think of.
 
 `default` is a useful filter
 for when your template value evaluates to `False`.
@@ -874,9 +1054,23 @@ with an empty string.
 The example below outputs "Nothing to see here"
 if the variable was Falsy.
 
+{{< web >}}
 ```django
 {{ a_variable|default:"Nothing to see here." }}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{{ a_variable|default:"Nothing to see here." }}
+```
+{{< /book >}}
+
+Falsy is a concept in Python
+that describes anything
+that Python will evaluate as false
+in a boolean expression.
+Empty strings, empty lists, empty dicts, empty sets, `False`, and `None`
+are all common Falsy values.
 
 `length` is a simple filter
 for lists.
@@ -885,11 +1079,16 @@ It is the Django template equivalent to the `len` function.
 
 I like the `linebreaks` filter a lot.
 If you create a form
+{{< web >}}
 (which we'll explore in the next article)
+{{< /web >}}
+{{< book >}}
+(which we'll explore in the next chapter)
+{{< /book >}}
 and accept a text area field where the user is allowed
 to provide newlines,
-then the `linebreaks` filter is great
-if you want to display those newlines later
+then the `linebreaks` filter allows you
+to display those newlines later
 when rendering the user's data.
 By default,
 HTML will not show new line characters as intended.
@@ -900,15 +1099,22 @@ Handy!
 Before moving on,
 let's consider two more.
 
-`pluralize` is a convenient tag
+`pluralize` is a convenient filter
 for the times when your text considers counts
 of things. Consider a count of items.
 
+{{< web >}}
 ```django
 {{ count_items }} item{{ count_items|pluralize }}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{{ count_items }} item{{ count_items|pluralize }}
+```
+{{< /book >}}
 
-The `pluralize` tag will do the right thing
+The `pluralize` filter will do the right thing
 if there are zero, one, or more items
 in the list.
 
@@ -920,7 +1126,10 @@ in the list.
 (and so on)
 ```
 
-The final tag in our tour is the `yesno` tag.
+Be aware that `pluralize` can't handle irregular plurals
+like "mice" for "mouse."
+
+The final filter in our tour is the `yesno` filter.
 `yesno` is good for converting `True|False|None`
 into a meaningful text message.
 Imagine we're making an application
@@ -929,9 +1138,16 @@ and a person's attendance is one
 of those three values.
 Our template might look like:
 
+{{< web >}}
 ```django
 {{ user.name }} has {{ user_accepted|yesno:"accepted,declined,not RSVPed" }}.
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{{ user.name }} has {{ user_accepted|yesno:"accepted,declined,not RSVPed" }}.
+```
+{{< /book >}}
 
 Depending on the value of `user_accepted`,
 the template will display something meaningful
@@ -1012,11 +1228,20 @@ we must load our tags module
 into the template
 with the `load` tag.
 
+{{< web >}}
 ```django
 {% load custom_tags %}
 
 {{ message|add_pizzazz }}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% load custom_tags %}
+
+{{ message|add_pizzazz }}
+```
+{{< /book >}}
 
 If our message was "You got a perfect score!",
 then our template should show the message
@@ -1050,11 +1275,20 @@ def champion_welcome(name, level):
 
 We can load the custom tags and use our tag like any other built-in tag.
 
+{{< web >}}
 ```django
 {% load custom_tags %}
 
 {% champion_welcome "He-Man" 50 %}
 ```
+{{< /web >}}
+{{< book >}}
+```djangotemplate
+{% load custom_tags %}
+
+{% champion_welcome "He-Man" 50 %}
+```
+{{< /book >}}
 
 This silly welcome tag will respond
 to multiple input variables
@@ -1066,7 +1300,15 @@ of custom tags
 in our examples.
 There are some more advanced custom tagging features
 which you can explore
-in the {{< extlink "https://docs.djangoproject.com/en/4.0/howto/custom-template-tags/" "Django custom template tags documentation" >}}.
+in the {{< extlink "https://docs.djangoproject.com/en/4.1/howto/custom-template-tags/" "Django custom template tags documentation" >}}.
+
+Django also uses `load`
+to provide template authors
+with some additional tools.
+For instance,
+we will see how to load some custom tags provided
+by the framework
+when we learn about working with images and JavaScript later on.
 
 ## Summary
 

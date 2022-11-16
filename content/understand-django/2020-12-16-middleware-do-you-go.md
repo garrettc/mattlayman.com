@@ -20,6 +20,7 @@ series: "Understand Django"
 
 ---
 
+{{< web >}}
 In the previous
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
@@ -37,6 +38,14 @@ Now we're going to learn more
 about middleware
 and its function
 within a Django project.
+{{< /web >}}
+{{< book >}}
+In this chapter,
+we're going to learn more
+about middleware
+and its function
+within a Django project.
+{{< /book >}}
 
 {{< understand-django-series "middleware" >}}
 
@@ -51,20 +60,18 @@ Middleware is code that exists
 in the middle.
 "In the middle of what?"
 you might ask.
-The "middle" is the code between
+The "middle" is the code that executes between
 when an `HttpRequest`
 is created
 by the framework
-to the time
-where your view code is called
+and when the code you wrote is called
 by Django.
 The "middle" can also refer
-to the time
+to code that executes
 *after* your view completes
-but before the `HttpResponse`
-is translated to bytes
-by Django
-to send over the network
+but before Django translates the `HttpResponse`
+to bytes
+to send it over the network
 to a browser.
 
 Have you ever eaten an Everlasting Gobstopper?
@@ -101,6 +108,7 @@ If you're a visual learner
 who didn't find my gobstopper analogy helpful,
 then I hope this picture will be more illustrative.
 
+{{< web >}}
 ```text
                +--------- SecurityMiddleware --------------+
                |+-------- SessionMiddleware --------------+|
@@ -113,6 +121,22 @@ then I hope this picture will be more illustrative.
 HttpRequest =================> view function ==================> HttpResponse
                |||||||                               |||||||
 ```
+{{< /web >}}
+{{< book >}}
+```text
+        Middleware layers
+        +------- Security ------------+
+        |+------ Session ------------+|
+        ||+----- Common ------------+||
+        |||+---- CsrfView ---------+|||
+        ||||+--- Authentication --+||||
+        |||||+-- Message --------+|||||
+        ||||||+- XFrameOptions -+||||||
+        |||||||                 |||||||
+request ========> view function=======> response
+        |||||||                 |||||||
+```
+{{< /book >}}
 
 How does Django make this layering work?
 When you start Django
@@ -120,6 +144,8 @@ with an application server
 like Gunicorn,
 you have to give the application server the path
 to your WSGI module.
+We will cover application servers in a later topic,
+but, for now, know that an application server can run your Django app.
 If your project directory containing your settings file
 is called `project`,
 then calling Gunicorn looks like:
@@ -128,9 +154,21 @@ then calling Gunicorn looks like:
 $ gunicorn project.wsgi
 ```
 
+You'd have this setup if you ran `django-admin startproject project .`
+(including the last dot),
+but what's really needed by the application server is wherever your `wsgi.py`
+file is located in your project,
+*in module path form*.
+Adjust accordingly for your needs.
+
 Remember way back
+{{< web >}}
 in the first article
 of the series
+{{< /web >}}
+{{< book >}}
+in the first chapter
+{{< /book >}}
 that WSGI stands
 for the Web Server Gateway Interface
 and is the common layer
@@ -138,13 +176,21 @@ that synchronous Python web apps must implement
 in order to work
 with Python application servers.
 Inside this `project.wsgi` module
-is a function called `get_wsgi_application`.
+is a function called `get_wsgi_application`,
+imported from `django.core.wsgi`.
 
 `get_wsgi_application` does two things:
 
+{{< web >}}
 * Calls `django.setup` which does all the startup configuration
     that we saw in the last article
 * Returns a `WSGIHandler` instance
+{{< /web >}}
+{{< book >}}
+* Calls `django.setup` which does all the startup configuration
+    that we saw in the last chapter
+* Returns a `WSGIHandler` instance
+{{< /book >}}
 
 As you might guess,
 the `WSGIHandler` is designed
@@ -173,9 +219,10 @@ to pass through each middleware.
 Aside from building the middleware chain,
 `load_middleware` must do some other important configuration.
 
+{{< web >}}
 * The method handles synchronous and asynchronous middleware.
     As Django increases its support
-    of async development (a future topic in this series),
+    of async development,
     the internals of Django need to manage the differences.
     `load_middleware` makes some alterations
     depending on what it can discover about a middleware class.
@@ -184,6 +231,20 @@ Aside from building the middleware chain,
     based on the presence
     of various hook methods.
     We'll discuss those hooks later in this article.
+{{< /web >}}
+{{< book >}}
+* The method handles synchronous and asynchronous middleware.
+    As Django increases its support
+    of async development,
+    the internals of Django need to manage the differences.
+    `load_middleware` makes some alterations
+    depending on what it can discover about a middleware class.
+* The method registers a middleware with certain *sets*
+    of middleware
+    based on the presence
+    of various hook methods.
+    We'll discuss those hooks later in this chapter.
+{{< /book >}}
 
 That explains middleware's structure
 and how all the middleware interacts
@@ -201,10 +262,16 @@ for code that we want to execute globally
 for our Django project.
 
 For instance,
+{{< web >}}
 think back to our last article
 on
 [User Authentication]({{< ref "/understand-django/2020-11-04-user-authentication.md" >}}).
 In that article,
+{{< /web >}}
+{{< book >}}
+think back to our last chapter.
+In that chapter,
+{{< /book >}}
 we observed
 that Django's auth system is dependent
 on the `AuthenticationMiddleware`.
@@ -258,7 +325,7 @@ instead of HTTPS,
 the middleware can return an `HttpResponsePermanentRedirect`
 that redirects to the same URL
 with `https://`
-and prevent the rest of the chain
+and prevents the rest of the chain
 from running.
 
 Aside from this exceptional behavior
@@ -290,12 +357,15 @@ we're going to put the middleware
 in a `middleware.py` file.
 
 ```python
+# project/middleware.py
 class AwesomeMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        return self.get_response(request)
+        return self.get_response(
+            request
+        )
 ```
 
 After creating the middleware,
@@ -360,6 +430,7 @@ We might update the code
 to look like:
 
 ```python
+# project/middleware.py
 import logging
 import time
 
@@ -372,13 +443,17 @@ class AwesomeMiddleware:
 
     def __call__(self, request):
         before_timestamp = time.time()
-        logger.info(f"Tracking {before_timestamp}")
+        logger.info(
+            f"Tracking {before_timestamp}"
+        )
 
         response = self.get_response(request)
 
         after_timestamp = time.time()
         delta = after_timestamp - before_timestamp
-        logger.info(f"Tracking {after_timestamp} for a delta of {delta}")
+        logger.info(
+            f"Tracking {after_timestamp} for a delta of {delta}"
+        )
 
         return response
 ```
@@ -429,6 +504,7 @@ by using the `process_view` hook.
 Let's see what we can do:
 
 ```python
+# project/middleware.py
 import logging
 import time
 
@@ -441,18 +517,24 @@ class AwesomeMiddleware:
 
     def __call__(self, request):
         before_timestamp = time.time()
-        logger.info(f"Tracking {before_timestamp}")
+        logger.info(
+            f"Tracking {before_timestamp}"
+        )
 
         response = self.get_response(request)
 
         after_timestamp = time.time()
         delta = after_timestamp - before_timestamp
-        logger.info(f"Tracking {after_timestamp} for a delta of {delta}")
+        logger.info(
+            f"Tracking {after_timestamp} for a delta of {delta}"
+        )
 
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        logger.info(f"Running {view_func.__name__} view")
+        logger.info(
+            f"Running {view_func.__name__} view"
+        )
 ```
 
 Now our middleware uses Python's reflection capabilities
@@ -497,7 +579,7 @@ capturing and reporting exceptions would be *significantly* harder.
 Want to learn more about hooks?
 You can see all the details
 about these hooks
-in the {{< extlink "https://docs.djangoproject.com/en/3.1/topics/http/middleware/#other-middleware-hooks" "middleware documentation" >}}.
+in the {{< extlink "https://docs.djangoproject.com/en/4.1/topics/http/middleware/#other-middleware-hooks" "middleware documentation" >}}.
 
 ## What Middleware Does Django Include?
 
@@ -511,11 +593,12 @@ in the framework?
 The full list
 of built-in middleware
 is available
-in the {{< extlink "https://docs.djangoproject.com/en/3.1/ref/middleware/" "middleware reference" >}}.
+in the {{< extlink "https://docs.djangoproject.com/en/4.1/ref/middleware/" "middleware reference" >}}.
 I'll describe what I think are the most common
 or useful middleware classes
 that Django includes.
 
+{{< web >}}
 * `AuthenticationMiddleware` - We've already encountered this middleware
     in the exploration of the auth system.
     The job of this middleware is
@@ -546,8 +629,6 @@ that Django includes.
     on form submissions.
 * `LocaleMiddleware` - This middleware is for handling translations
     if you choose to internationalize your project.
-    We'll look into internationalization
-    in a future article.
 * `MessageMiddleware` - The message middleware is for "flash messages."
     These are one-time messages
     that you'd likely see
@@ -571,6 +652,62 @@ that Django includes.
     Sessions are crucial
     for many parts of Django
     like user auth.
+{{< /web >}}
+{{< book >}}
+* `AuthenticationMiddleware` - We've already encountered this middleware
+    in the exploration of the auth system.
+    The job of this middleware is
+    to add the `user` attribute
+    to an `HttpRequest` object.
+    That one little `user` attribute powers many
+    of the features of the auth system.
+* `CommonMiddleware` - The common middleware is a bit of an oddball.
+    This middleware handles a variety
+    of Django settings
+    to control certain aspects
+    of your project.
+    For instance,
+    the `APPEND_SLASH` setting will redirect a request
+    like `example.com/accounts`
+    to `example.com/accounts/`.
+    This setting only works
+    if the `CommonMiddleware` is included.
+* `CsrfViewMiddleware` - In the forms chapter,
+    I mentioned the CSRF token.
+    As a reminder,
+    this is a security feature
+    that helps protect your project against malicious sources
+    that want to send bad data
+    to your site.
+    The `CsrfViewMiddleware` ensures
+    that the CSRF token is present and valid
+    on form submissions.
+* `LocaleMiddleware` - This middleware is for handling translations
+    if you choose to internationalize your project.
+* `MessageMiddleware` - The message middleware is for "flash messages."
+    These are one-time messages
+    that you'd likely see
+    after submitting a form,
+    though they can be used
+    in many places.
+    We'll discuss messages more
+    when we get to the sessions topic.
+* `SecurityMiddleware` - The security middleware includes a number
+    of checks
+    to help keep your site secure.
+    We saw the example of checking for HTTPS earlier
+    in this chapter.
+    This middleware also handles things like XSS, HSTS,
+    and a bunch of other acronyms (😛)
+    that will be seen
+    with the future security topic.
+* `SessionMiddleware` - The session middleware manages
+    session state
+    for a user.
+    Sessions are crucial
+    for many parts of Django
+    like user auth.
+{{< /book >}}
 
 As you can see
 from this incomplete list,
@@ -595,7 +732,12 @@ for your toolbelt.
 
 ## Summary
 
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we saw Django's middleware system.
 
 We discussed:
@@ -604,7 +746,12 @@ We discussed:
 * How to write your own middleware
 * Some of the middleware classes that come with Django
 
+{{< web >}}
 Next time we'll dig into static files.
+{{< /web >}}
+{{< book >}}
+In the next chapter, we'll dig into static files.
+{{< /book >}}
 Static files are all the images,
 JavaScript,
 CSS,
@@ -619,6 +766,7 @@ We need to understand:
     when deploying your site
     to the internet
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -629,3 +777,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}

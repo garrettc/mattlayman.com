@@ -20,6 +20,7 @@ series: "Understand Django"
 
 ---
 
+{{< web >}}
 In the previous
 [Understand Django]({{< ref "/understand-django/_index.md" >}})
 article,
@@ -28,6 +29,10 @@ into the Django administrators site.
 We saw what the site was
 and how to configure and customize it.
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we will examine what goes into an application.
 Applications are core elements
 of a Django project.
@@ -73,6 +78,7 @@ the code that you download
 using pip is technically called a "{{< extlink "https://packaging.python.org/overview/" "distribution" >}}."
 Even though we colloquially talk about Python downloads
 from PyPI
+(Python Package Index)
 as packages,
 we're really talking about distributions,
 and a distribution is a unit
@@ -85,11 +91,11 @@ of applications
 in Django.
 
 > Your "web application" is a Django **project**
-composed of one more Django **applications**.
+composed of one or more Django **applications**.
 
 ## Application Structure
 
-Let's look at fully loaded Django application
+Let's look at a fully loaded Django application
 to see the fairly standard structure
 that you will encounter
 in Django projects.
@@ -97,7 +103,12 @@ in Django projects.
 An application usually tries
 to capture a core concept
 within your system.
+{{< web >}}
 For this article,
+{{< /web >}}
+{{< book >}}
+For this chapter,
+{{< /book >}}
 we will use movies
 as the concept we want to model.
 
@@ -123,38 +134,54 @@ movies
 This file is where all your `ModelAdmin` classes live
 to power how the movies app will appear
 in the Django admin.
+{{< web >}}
 You can learn more about the admin
 in [Administer All The Things]({{< ref "/understand-django/2020-08-26-administer-all-the-things.md" >}}).
+{{< /web >}}
 
 `apps.py`:
 This file is for the `AppConfig`
 of the application.
 We will discuss the `AppConfig`
 and how to use it
+{{< web >}}
 later in this article.
+{{< /web >}}
+{{< book >}}
+later in this chapter.
+{{< /book >}}
 
 `migrations`:
 This directory is where all database migrations are stored
 for the application.
 Any model changes for this app will generate a migration
-and created a numbered migration file
+and create a numbered migration file
 in this directory.
+{{< web >}}
 More info about migrations is
 in [Store Data With Models]({{< ref "/understand-django/2020-06-25-store-data-with-models.md" >}}).
+{{< /web >}}
 
 `models.py`:
 This file is the home
 for all the Django `Model` classes
 in the application.
 The models represent all your database data.
+{{< web >}}
 Learn more about models
 in [Store Data With Models]({{< ref "/understand-django/2020-06-25-store-data-with-models.md" >}}).
+{{< /web >}}
 
 `tests.py`:
 This file is for automated tests.
 We'll cover automated tests
 in Django
+{{< web >}}
 in a future article.
+{{< /web >}}
+{{< book >}}
+in a future chapter.
+{{< /book >}}
 For now,
 you can know that I *always* **delete** this file
 and replace it with a `tests` package.
@@ -168,8 +195,10 @@ This file is where Django view functions or classes go.
 Views are the glue code
 that connect your URL routes
 to your database models.
+{{< web >}}
 I wrote about views
 in [Views On Views]({{< ref "/understand-django/2020-03-03-views-on-views.md" >}}).
+{{< /web >}}
 
 That's everything
 that comes
@@ -186,17 +215,21 @@ all movie related functionality.
 The `urls.py` file would power all the routes
 in something
 like `www.mysite.com/movies/`.
+{{< web >}}
 Information
 on URLs is
 in [URLs Lead The Way]({{< ref "/understand-django/2020-01-22-urls-lead-way.md" >}}).
+{{< /web >}}
 
 `forms.py`:
 When you use Django `Form` classes
 to interact with users,
 this is the file
 where forms are stored.
+{{< web >}}
 You can discover more on forms
 in [User Interaction With Forms]({{< ref "/understand-django/2020-05-05-user-interaction-forms.md" >}}).
+{{< /web >}}
 
 `templatetags`:
 This directory is a Python package
@@ -204,8 +237,10 @@ that would include a module
 like `movies_tags.py`
 where you'd define any custom template tags
 to use when rendering your templates.
+{{< web >}}
 Custom tags are a topic
 in [Templates For User Interfaces]({{< ref "/understand-django/2020-04-02-templates-user-interfaces.md" >}}).
+{{< /web >}}
 
 `templates`:
 This directory can store templates
@@ -213,18 +248,29 @@ that the application will render.
 I personally prefer
 using a project-wide `templates` directory
 as discussed
+{{< web >}}
 in [Templates For User Interfaces]({{< ref "/understand-django/2020-04-02-templates-user-interfaces.md" >}}),
-but `templates` directories are commonly found,
+{{< /web >}}
+{{< book >}}
+in the templates chapter,
+{{< /book >}}
+but `templates` directories are commonly found
+in indvidual Django apps,
 especially for third party applications
 that you may pull into your project.
 
 `static`:
 For static files
-that you want to display
-like images,
+that you want to display,
+such as images,
 you can use the `static` directory.
 We'll discuss static files more
+{{< web >}}
 in a future article.
+{{< /web >}}
+{{< book >}}
+in a future chapter.
+{{< /book >}}
 
 `management`:
 Users can extend Django
@@ -233,16 +279,18 @@ that can be called via `manage.py`.
 Those commands are stored
 in this package.
 Custom commands are a future topic
+{{< web >}}
 in this series.
+{{< /web >}}
+{{< book >}}
+in this book.
+{{< /book >}}
 
 `locale`:
 When doing translations and internationalization,
 the translation files must have a home.
 That's the purpose
 of the `locale` directory.
-We'll learn more about internationalization (i18n)
-and localization (l10n)
-in a future article.
 
 `managers.py`:
 This file is not always used,
@@ -252,8 +300,10 @@ then you may want
 to separate them
 from your models
 in this file.
+{{< web >}}
 Managers are a topic
 in [Store Data With Models]({{< ref "/understand-django/2020-06-25-store-data-with-models.md" >}}).
+{{< /web >}}
 
 Most applications will *not* have all
 of these pieces,
@@ -397,7 +447,7 @@ Most of the tools
 that you need to build a website are baked directly
 into the framework.
 This is a vastly different approach compared
-to {{< extlink "https://flask.palletsprojects.com/en/1.1.x/" "Flask" >}}
+to {{< extlink "https://flask.palletsprojects.com/en/2.2.x/" "Flask" >}}
 which provides a relatively small API
 and depends heavily
 on third party libraries.
@@ -411,7 +461,9 @@ Django apps fill in the gaps.
 
 Before you go out to PyPI,
 we need look no further
-than the `django.contrib` package.
+than the `django.contrib` package,
+a collection of "contributed" applications provided
+by Django itself.
 When you run the `startproject` command,
 Django will include a variety
 of built-in applications
@@ -425,15 +477,19 @@ in `INSTALLED_APPS`.
 I think this is the big difference
 in philosophy
 behind the framework.
-Some developers like starting
+Some developers like to start
 from an extremely minimal kernel
 of functionality
-and build it up
-based on their needs.
+and build it up based on their needs.
 Django's philosophy seems to be
 that you start
 with an opinionated baseline
 and pare down what you don't require.
+Django doesn't expect that you'll use every feature
+in every app,
+but many of the features that you'll want
+are at the ready
+when you need them.
 
 From my point of view,
 I think the Django philosophy is the right one
@@ -537,7 +593,12 @@ a more enjoyable experience.
 
 ## Summary
 
+{{< web >}}
 In this article,
+{{< /web >}}
+{{< book >}}
+In this chapter,
+{{< /book >}}
 we studied
 Django applications.
 
@@ -549,7 +610,12 @@ We saw:
     from a common format
     that creates reusable components
 
+{{< web >}}
 Next time we will look into authentication
+{{< /web >}}
+{{< book >}}
+Next, we will look into authentication
+{{< /book >}}
 in Django.
 We will study:
 
@@ -557,6 +623,7 @@ We will study:
 * How to deal with permissions for users
 * How to work with users in your views and templates
 
+{{< web >}}
 If you'd like to follow along
 with the series,
 please feel free to sign up
@@ -567,3 +634,4 @@ you can reach me online
 on Twitter
 where I am
 {{< extlink "https://twitter.com/mblayman" "@mblayman" >}}.
+{{< /web >}}
